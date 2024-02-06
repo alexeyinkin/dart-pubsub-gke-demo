@@ -1,0 +1,9 @@
+# Run:
+# gcloud builds submit --project=$PROJECT_ID --substitutions="_VERSION=v1.0.1,_REGION=$REGION,_REPOSITORY=$REPOSITORY" --config=cloudbuild.yaml .
+
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/capitalizer:$_VERSION', '.']
+
+images:
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/capitalizer:$_VERSION'

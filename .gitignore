@@ -1,0 +1,8 @@
+/.idea
+/capitalizer/pubspec.lock
+/keys/*
+
+!/keys/.gitkeep
+
+.DS_Store
+.dart_tool

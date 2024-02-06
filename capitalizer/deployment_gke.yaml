@@ -1,0 +1,30 @@
+# VERSION=v1.0.0 envsubst < deployment_gke.yaml | kubectl apply -f -
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capitalizer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: capitalizer
+  template:
+    metadata:
+      labels:
+        app: capitalizer
+    spec:
+      containers:
+        - name: capitalizer
+          image: ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/capitalizer:${VERSION}
+          env:
+            - name: PROJECT_ID
+              value: ${PROJECT_ID}
+          volumeMounts:
+            - name: keys
+              mountPath: "/app/keys"
+              readOnly: true
+      volumes:
+        - name: keys
+          secret:
+            secretName: pubsub

@@ -1,0 +1,32 @@
+# This is for local only because it combines 'imagePullPolicy: IfNotPresent' with 'latest' tag.
+# envsubst < deployment_minikube.yaml | kubectl apply -f -
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capitalizer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: capitalizer
+  template:
+    metadata:
+      labels:
+        app: capitalizer
+    spec:
+      containers:
+        - name: capitalizer
+          image: capitalizer
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PROJECT_ID
+              value: ${PROJECT_ID}
+          volumeMounts:
+            - name: keys
+              mountPath: "/app/keys"
+              readOnly: true
+      volumes:
+        - name: keys
+          secret:
+            secretName: pubsub
