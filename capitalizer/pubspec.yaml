@@ -1,5 +1,6 @@
 name: capitalizer
 publish_to: none
+version: 1.2.3
 
 environment:
   sdk: ^3.2.0

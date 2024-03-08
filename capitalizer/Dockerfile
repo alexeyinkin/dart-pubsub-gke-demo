@@ -1,10 +1,11 @@
 # To run locally:
 #
-# docker build -t capitalizer .
+# docker build -t capitalizer --build-arg DART_VERSION=3.2.0 .
 # docker run -it --rm -e "PROJECT=$PROJECT" -v /Users/user/dart-pubsub-gke-demo/keys/pubsub.json:/app/keys/key.json --name capitalizer capitalizer
 # docker stop capitalizer
 
-FROM dart:stable AS build
+ARG DART_VERSION
+FROM dart:${DART_VERSION} AS build
 
 WORKDIR /app
 
