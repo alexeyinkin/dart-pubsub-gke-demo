@@ -11,12 +11,12 @@ const _topicName = 'input';
 const _subscriptionName = 'output-sub';
 
 void main() {
-  test('Publish and read result', () async {
-    final projectId = Platform.environment['PROJECT_ID'];
+  test('Publish and read the result', () async {
+    final projectId = Platform.environment['PROJECT'];
     print('Project ID: $projectId');
 
     if (projectId == null) {
-      throw Exception('Set PROJECT_ID environment variable.');
+      throw Exception('Set PROJECT environment variable.');
     }
 
     final pubsub = PubSub(

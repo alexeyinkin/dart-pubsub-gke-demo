@@ -10,11 +10,11 @@ const _subscriptionName = 'input-sub';
 const _topicName = 'output';
 
 Future<void> main() async {
-  final projectId = Platform.environment['PROJECT_ID'];
+  final projectId = Platform.environment['PROJECT'];
   print('Project ID: $projectId');
 
   if (projectId == null || projectId == '') {
-    throw Exception('Set PROJECT_ID environment variable.');
+    throw Exception('Set PROJECT environment variable.');
   }
 
   final pubsub = PubSub(
