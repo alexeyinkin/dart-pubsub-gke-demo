@@ -3,7 +3,7 @@
 
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', '$_REGION-docker.pkg.dev/$PROJECT/$_REPOSITORY/capitalizer:$_VERSION', '.']
+    args: ['build', '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/capitalizer:$_VERSION', '.']
 
 images:
-  - '$_REGION-docker.pkg.dev/$PROJECT/$_REPOSITORY/capitalizer:$_VERSION'
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/capitalizer:$_VERSION'
