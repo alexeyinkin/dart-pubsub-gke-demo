@@ -16,10 +16,10 @@ spec:
     spec:
       containers:
         - name: capitalizer
-          image: ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/capitalizer:${VERSION}
+          image: ${REGION}-docker.pkg.dev/${PROJECT}/${REPOSITORY}/capitalizer:${VERSION}
           env:
-            - name: PROJECT_ID
-              value: ${PROJECT_ID}
+            - name: PROJECT
+              value: ${PROJECT}
           volumeMounts:
             - name: keys
               mountPath: "/app/keys"

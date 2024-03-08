@@ -1,7 +1,7 @@
 # To run locally:
 #
 # docker build -t capitalizer .
-# docker run -it --rm -e "PROJECT_ID=$PROJECT_ID" -v /Users/user/dart-pubsub-gke-demo/keys/pubsub.json:/app/keys/key.json --name capitalizer capitalizer
+# docker run -it --rm -e "PROJECT=$PROJECT" -v /Users/user/dart-pubsub-gke-demo/keys/pubsub.json:/app/keys/key.json --name capitalizer capitalizer
 # docker stop capitalizer
 
 FROM dart:stable AS build
