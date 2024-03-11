@@ -27,4 +27,4 @@ spec:
       volumes:
         - name: keys
           secret:
-            secretName: pubsub
+            secretName: capitalizer
