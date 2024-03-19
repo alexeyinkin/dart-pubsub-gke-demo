@@ -16,6 +16,6 @@ jobs:
           workload_identity_provider: 'projects/${{ secrets.MASTER_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: 'project-creator@${{ secrets.MASTER_PROJECT_NAME }}.iam.gserviceaccount.com'
 
-
-#      - uses: 'google-github-actions/setup-gcloud@v2'
-#      - run: gcloud info
+      - uses: 'google-github-actions/setup-gcloud@v2'
+      - run: gcloud info
+      - run: gcloud projects list
