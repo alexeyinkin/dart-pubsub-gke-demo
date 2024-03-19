@@ -35,11 +35,11 @@ jobs:
           gcloud projects \
             create $PROJECT \
             --name=$PROJECT \
-            --organization=${{ secrets.$ORGANIZATION }}
+            --organization=${{ secrets.ORGANIZATION }}
           gcloud services enable cloudbilling.googleapis.com --project=$PROJECT
           gcloud billing \
             projects link $PROJECT \
-            --billing-account=${{ secrets.$BILLING_ACCOUNT }}
+            --billing-account=${{ secrets.BILLING_ACCOUNT }}
 
       - name: 'Enable the services for building'
         run: |
@@ -48,8 +48,8 @@ jobs:
 
       - name: 'Export configuration variables'
         run: |
-          echo "REGION=$REGION" >> $GITHUB_ENV
-          echo "ZONE=$ZONE" >> $GITHUB_ENV
+          echo "REGION=${{ vars.REGION }}" >> $GITHUB_ENV
+          echo "ZONE=${{ vars.ZONE }}" >> $GITHUB_ENV
 
       - name: 'Create the image repository'
         run: |
