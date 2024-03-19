@@ -24,7 +24,7 @@ jobs:
         run: |
           export TIMESTAMP=$(date -u +%Y%m%d-%H%M%S);
           COMMIT_HASH=$(git rev-parse --short HEAD); \
-            export PROJECT="capitalizer-$TIMESTAMP-$COMMIT_HASH"
+            export PROJECT="p-$TIMESTAMP-$COMMIT_HASH"
           echo "Timestamp: $TIMESTAMP"
           echo "Project: $PROJECT"
           echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
