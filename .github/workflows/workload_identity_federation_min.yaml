@@ -17,5 +17,5 @@ jobs:
           service_account: 'project-creator@${{ secrets.MASTER_PROJECT_NAME }}.iam.gserviceaccount.com'
 
 
-      - uses: 'google-github-actions/setup-gcloud@v2'
-      - run: gcloud info
+#      - uses: 'google-github-actions/setup-gcloud@v2'
+#      - run: gcloud info
