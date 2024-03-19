@@ -25,21 +25,23 @@ jobs:
           export TIMESTAMP=$(date -u +%Y%m%d-%H%M%S);
           COMMIT_HASH=$(git rev-parse --short HEAD); \
             export PROJECT="p-$TIMESTAMP-$COMMIT_HASH"
+          export TIMESTAMP='20240319-141424'
+          export PROJECT='p-20240319-141424-7123eaf'
           echo "Timestamp: $TIMESTAMP"
           echo "Project: $PROJECT"
           echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
           echo "PROJECT=$PROJECT" >> $GITHUB_ENV
 
-      - name: 'Create Google Cloud Project'
-        run: |
-          gcloud projects \
-            create $PROJECT \
-            --name=$PROJECT \
-            --organization=${{ secrets.ORGANIZATION }}
-          gcloud services enable cloudbilling.googleapis.com --project=$PROJECT
-          gcloud billing \
-            projects link $PROJECT \
-            --billing-account=${{ secrets.BILLING_ACCOUNT }}
+#      - name: 'Create Google Cloud Project'
+#        run: |
+#          gcloud projects \
+#            create $PROJECT \
+#            --name=$PROJECT \
+#            --organization=${{ secrets.ORGANIZATION }}
+#          gcloud services enable cloudbilling.googleapis.com --project=$PROJECT
+#          gcloud billing \
+#            projects link $PROJECT \
+#            --billing-account=${{ secrets.BILLING_ACCOUNT }}
 
       - name: 'Enable services'
         run: |
@@ -57,18 +59,18 @@ jobs:
 
       - name: 'Prepare Google Cloud for Terraform'
         run: |
-          gcloud storage \
-            buckets create "gs://$PROJECT-tf-state" \
-            --location=$REGION \
-            --uniform-bucket-level-access \
-            --project=$PROJECT
-          gcloud iam \
-            service-accounts create "deploy" \
-            --project=$PROJECT
+#          gcloud storage \
+#            buckets create "gs://$PROJECT-tf-state" \
+#            --location=$REGION \
+#            --uniform-bucket-level-access \
+#            --project=$PROJECT
+#          gcloud iam \
+#            service-accounts create "deploy" \
+#            --project=$PROJECT
           gcloud projects \
             add-iam-policy-binding $PROJECT \
             --member="serviceAccount:deploy@$PROJECT.iam.gserviceaccount.com" \
-            --role="roles/Owner" \
+            --role="roles/owner" \
             --project=$PROJECT
 
       # TODO: Move to Terraform?
