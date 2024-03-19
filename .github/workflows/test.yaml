@@ -110,14 +110,14 @@ jobs:
 #            --role='roles/artifactregistry.reader' \
 #            --project=$PROJECT
 #
-#      # We don't need Terraform until we build images,
-#      # but the Google Cloud services take time to get enabled anyway.
-#      # Killing time productively.
-#      - uses: hashicorp/setup-terraform@v3
-#        with:
-#          terraform_version: "1.7.5"
-#          terraform_wrapper: false
-#
+      # We don't need Terraform until we build images,
+      # but the Google Cloud services take time to get enabled anyway.
+      # Killing time productively.
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.5"
+          terraform_wrapper: false
+
 #      # TODO: terraform fmt
 #
 #      - name: 'Create the image repository'
