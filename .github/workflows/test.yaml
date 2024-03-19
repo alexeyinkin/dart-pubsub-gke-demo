@@ -41,23 +41,94 @@ jobs:
             projects link $PROJECT \
             --billing-account=${{ secrets.BILLING_ACCOUNT }}
 
-      - name: 'Enable the services for building'
+      - name: 'Enable services'
         run: |
           gcloud services enable artifactregistry.googleapis.com --project=$PROJECT
           gcloud services enable cloudbuild.googleapis.com --project=$PROJECT
+          gcloud services enable container.googleapis.com --project=$PROJECT
+          gcloud services enable iam.googleapis.com --project=$PROJECT
+          gcloud services enable pubsub.googleapis.com --project=$PROJECT
 
       - name: 'Export configuration variables'
         run: |
           echo "REGION=${{ vars.REGION }}" >> $GITHUB_ENV
           echo "ZONE=${{ vars.ZONE }}" >> $GITHUB_ENV
+          echo "DART_VERSION=${{ vars.DART_VERSION }}" >> $GITHUB_ENV
+
+      - name: 'Prepare Google Cloud for Terraform'
+        run: |
+          gcloud storage \
+            buckets create "gs://$PROJECT-tf-state" \
+            --location=$REGION \
+            --uniform-bucket-level-access \
+            --project=$PROJECT
+          gcloud iam \
+            service-accounts create "deploy" \
+            --project=$PROJECT
+          gcloud projects \
+            add-iam-policy-binding $PROJECT \
+            --member="serviceAccount:deploy@$PROJECT.iam.gserviceaccount.com" \
+            --role="roles/Owner" \
+            --project=$PROJECT
+
+      # TODO: Move to Terraform?
+      - name: 'Prepare for GKE'
+        run: |
+          gcloud iam \
+            service-accounts create "gke-minimal" \
+            --project=$PROJECT
+          gcloud projects \
+            add-iam-policy-binding $PROJECT \
+            --member="serviceAccount:gke-minimal@$PROJECT.iam.gserviceaccount.com" \
+            --role='roles/logging.logWriter' \
+            --project=$PROJECT
+          gcloud projects \
+            add-iam-policy-binding $PROJECT \
+            --member="serviceAccount:gke-minimal@$PROJECT.iam.gserviceaccount.com" \
+            --role='roles/monitoring.metricWriter' \
+            --project=$PROJECT
+          gcloud projects \
+            add-iam-policy-binding $PROJECT \
+            --member="serviceAccount:gke-minimal@$PROJECT.iam.gserviceaccount.com" \
+            --role='roles/monitoring.viewer' \
+            --project=$PROJECT
+          gcloud projects \
+            add-iam-policy-binding $PROJECT \
+            --member="serviceAccount:gke-minimal@$PROJECT.iam.gserviceaccount.com" \
+            --role='roles/stackdriver.resourceMetadata.writer' \
+            --project=$PROJECT
+          gcloud projects \
+            add-iam-policy-binding $PROJECT \
+            --member="serviceAccount:gke-minimal@$PROJECT.iam.gserviceaccount.com" \
+            --role='roles/autoscaling.metricsWriter' \
+            --project=$PROJECT
+          gcloud projects \
+            add-iam-policy-binding $PROJECT \
+            --member="serviceAccount:gke-minimal@$PROJECT.iam.gserviceaccount.com" \
+            --role='roles/artifactregistry.reader' \
+            --project=$PROJECT
+
+      # We don't need Terraform until we build images,
+      # but the Google Cloud services take time to get enabled anyway.
+      # Killing time productively.
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.5"
+          terraform_wrapper: false
+
+      # TODO: terraform fmt
 
       - name: 'Create the image repository'
-        run: |
-          gcloud artifacts \
-            repositories create my-repository \
-            --repository-format=DOCKER \
-            --location=$REGION \
-            --project=$PROJECT
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 3
+          max_attempts: 5
+          command: |
+            gcloud artifacts \
+              repositories create my-repository \
+              --repository-format=DOCKER \
+              --location=$REGION \
+              --project=$PROJECT
 
       - name: 'Allocate a version'
         run: |
@@ -66,3 +137,39 @@ jobs:
             export VERSION="v$APP_VERSION-$TIMESTAMP-$COMMIT_HASH"
           echo "Version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: 'Submit a build'
+        run: |
+          SUBSTITUTIONS=(
+            "_VERSION=$VERSION"
+            "_DART_VERSION=$DART_VERSION"
+            "_REGION=$REGION"
+            "_REPOSITORY=$REPOSITORY"
+          ); gcloud builds \
+            submit \
+            --project=$PROJECT \
+            --substitutions="$(echo $(IFS=,; echo "${SUBSTITUTIONS[*]}"))" \
+            --config=capitalizer/cloudbuild.yaml \
+            capitalizer
+
+      - name: 'Terraform'
+        run: |
+          cd terraform
+          envsubst < backend.tf.template > backend.tf
+          terraform init
+          terraform apply \
+            -auto-approve \
+            -var="PROJECT=$PROJECT" \
+            -var="REGION=$REGION" \
+            -var="ZONE=$ZONE" \
+            -var="VERSION=$VERSION"          
+
+      - name: 'Sleep 30 seconds'
+        run: sleep 60
+
+      - name: 'Container output'
+        run: |
+          gcloud container \
+            clusters get-credentials my-cluster --zone=$ZONE --project=$PROJECT
+          kubectl get pods
+          kubectl logs $(kubectl get pods -o name | grep capitalizer | head -n 1)
