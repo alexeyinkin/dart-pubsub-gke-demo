@@ -16,7 +16,7 @@ resource "google_service_account_iam_member" "workload_identity_user" {
   member             = "serviceAccount:${var.PROJECT}.svc.id.goog[default/${kubernetes_service_account.capitalizer.metadata[0].name}]"
 }
 
-resource "kubernetes_deployment" "capitalizer" {
+resource "kubernetes_deployment" "dart-pubsub-gke-demo" {
   metadata {
     name = var.DEPLOYMENT_NAME
   }

@@ -21,7 +21,7 @@ variable "ZONE" {
 
 variable "DEPLOYMENT_NAME" {
   type    = string
-  default = "capitalizer"
+  default = "dart-pubsub-gke-demo"
 }
 
 variable "REPOSITORY" {
