@@ -167,12 +167,15 @@ jobs:
             -var="ZONE=$ZONE" \
             -var="VERSION=$VERSION"          
 
-      - name: 'Sleep 30 seconds'
+      - name: 'Sleep 60 seconds'
         run: sleep 60
+
+      - uses: 'google-github-actions/get-gke-credentials@v2'
+        with:
+          cluster_name: 'my-cluster'
+          location: ${{ vars.ZONE }}
 
       - name: 'Container output'
         run: |
-          gcloud container \
-            clusters get-credentials my-cluster --zone=$ZONE --project=$PROJECT
           kubectl get pods
           kubectl logs $(kubectl get pods -o name | grep capitalizer | head -n 1)
