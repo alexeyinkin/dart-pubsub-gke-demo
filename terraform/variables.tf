@@ -20,16 +20,6 @@ variable "CLUSTER" {
   default = "my-cluster"
 }
 
-variable "CREDENTIALS_FILE" {
-  type    = string
-  default = "deploy.json"
-}
-
-variable "KEYS_DIR" {
-  type    = string
-  default = "../keys"
-}
-
 variable "REPOSITORY" {
   type    = string
   default = "my-repository"
