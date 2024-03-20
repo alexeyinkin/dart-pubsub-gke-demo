@@ -13,7 +13,6 @@ terraform {
 }
 
 provider "google" {
-  credentials = file("${var.KEYS_DIR}/${var.CREDENTIALS_FILE}")
   project     = var.PROJECT
   region      = var.REGION
   zone        = var.ZONE
