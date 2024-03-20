@@ -18,6 +18,8 @@ spec:
         - name: capitalizer
           image: ${REGION}-docker.pkg.dev/${PROJECT}/${REPOSITORY}/capitalizer:${VERSION}
           env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /app/keys/key.json
             - name: PROJECT
               value: ${PROJECT}
           volumeMounts:

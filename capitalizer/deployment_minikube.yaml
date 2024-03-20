@@ -20,6 +20,8 @@ spec:
           image: capitalizer
           imagePullPolicy: IfNotPresent
           env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /app/keys/key.json
             - name: PROJECT
               value: ${PROJECT}
           volumeMounts:
