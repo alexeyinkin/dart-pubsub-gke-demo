@@ -169,8 +169,16 @@ jobs:
             -var="ZONE=$ZONE" \
             -var="VERSION=$VERSION"          
 
-      - name: 'Sleep 60 seconds'
-        run: sleep 60
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ vars.DART_VERSION }}
+
+      - name: 'Test'
+        run: |
+          cd capitalizer
+          dart test
+#      - name: 'Sleep 60 seconds'
+#        run: sleep 60
 
       - uses: 'google-github-actions/get-gke-credentials@v2'
         with:
