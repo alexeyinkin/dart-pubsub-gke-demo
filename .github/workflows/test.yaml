@@ -181,4 +181,4 @@ jobs:
       - name: 'Container output'
         run: |
           kubectl get pods
-          kubectl logs $(kubectl get pods -o name | grep capitalizer | head -n 1)
+          kubectl logs $(kubectl get pods -o name | grep dart-pubsub-gke-demo | head -n 1)

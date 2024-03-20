@@ -37,7 +37,7 @@ resource "kubernetes_deployment" "dart-pubsub-gke-demo" {
       spec {
         service_account_name = kubernetes_service_account.capitalizer.metadata[0].name
         container {
-          name  = "example"
+          name  = "capitalizer"
           image = "${var.REGION}-docker.pkg.dev/${var.PROJECT}/${var.REPOSITORY}/capitalizer:${var.VERSION}"
 
           env {
