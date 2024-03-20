@@ -1,6 +1,9 @@
 on:
   - workflow_dispatch
 
+env:
+  TF_LOG: DEBUG
+
 jobs:
   test:
     permissions:
@@ -158,7 +161,6 @@ jobs:
         run: |
           cd terraform
           envsubst < backend.tf.template > backend.tf
-          export TF_LOG=DEBUG
           terraform init
           terraform apply \
             -auto-approve \
@@ -174,6 +176,7 @@ jobs:
         with:
           cluster_name: 'my-cluster'
           location: ${{ vars.ZONE }}
+          project_id: ${{ env.PROJECT }}
 
       - name: 'Container output'
         run: |
