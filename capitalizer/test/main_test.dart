@@ -90,10 +90,12 @@ Future<http.Client> _getWorkloadIdentityFederationClient() async {
   print(accessToken.substring(0, 5));
   print(accessToken.substring(accessToken.length - 5));
 
+  final accessTokenTrimmed = accessToken.trimRight();
+
   var authClient = authenticatedClient(
     http.Client(),
     AccessCredentials(
-      AccessToken('Bearer', accessToken, DateTime.now().add(Duration(hours: 1)).toUtc()),
+      AccessToken('Bearer', accessTokenTrimmed, DateTime.now().add(Duration(hours: 1)).toUtc()),
       null, // Refresh token is null because we are manually setting the access token
       //['https://www.googleapis.com/auth/cloud-platform'], // Scopes
       PubSub.SCOPES,
