@@ -1,0 +1,8 @@
+name: test1
+publish_to: none
+
+environment:
+  sdk: ^3.2.0
+
+dependencies:
+  googleapis_auth: ^1.4.1
