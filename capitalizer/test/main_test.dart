@@ -67,9 +67,10 @@ Future<http.Client> _getClient() async {
   try {
     return await clientViaApplicationDefaultCredentials(scopes: PubSub.SCOPES);
     // return await clientViaMetadataServer();
-  } on ServerRequestFailedException catch (ex) {
+    //} on ServerRequestFailedException catch (ex) {
+  } catch (ex) {
     print(ex.toString());
-    print(ex.responseContent);
+    // print(ex.responseContent);
     return await _getWorkloadIdentityFederationClient();
     // rethrow;
   }
