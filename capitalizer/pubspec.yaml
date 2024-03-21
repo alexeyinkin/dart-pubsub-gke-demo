@@ -12,3 +12,4 @@ dependencies:
 
 dev_dependencies:
   test: ^1.25.2
+  wif_workaround: ^0.1.0

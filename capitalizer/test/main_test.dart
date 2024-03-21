@@ -8,6 +8,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart' as http;
 // import 'package:process/process.dart';
 import 'package:test/test.dart';
+import 'package:wif_workaround/wif_workaround.dart' as w;
 
 const _topicName = 'input';
 const _subscriptionName = 'output-sub';
@@ -24,8 +25,9 @@ void main() {
     print(File(Platform.environment['GOOGLE_APPLICATION_CREDENTIALS']!)
         .readAsStringSync());
     final pubsub = PubSub(
+      await w.clientViaApplicationDefaultCredentials(scopes: PubSub.SCOPES),
       //await clientViaApplicationDefaultCredentials(scopes: PubSub.SCOPES),
-      await _getClient(),
+      // await _getClient(),
       projectId,
     );
 
@@ -63,45 +65,45 @@ void main() {
   });
 }
 
-Future<http.Client> _getClient() async {
-  try {
-    return await clientViaApplicationDefaultCredentials(scopes: PubSub.SCOPES);
-    // return await clientViaMetadataServer();
-    //} on ServerRequestFailedException catch (ex) {
-  } catch (ex) {
-    print(ex.toString());
-    // print(ex.responseContent);
-    return await _getWorkloadIdentityFederationClient();
-    // rethrow;
-  }
-}
-
-Future<http.Client> _getWorkloadIdentityFederationClient() async {
-  final process = await Process.run('gcloud', ['auth', 'print-access-token']);
-
-  if (process.exitCode != 0) {
-    throw Exception(
-      'Command failed with exit code ${process.exitCode}: ${process.stderr}',
-    );
-  }
-
-  final accessToken = process.stdout as String;
-  print(accessToken.length);
-  print(accessToken.substring(0, 5));
-  print(accessToken.substring(accessToken.length - 5));
-
-  final accessTokenTrimmed = accessToken.trimRight();
-
-  var authClient = authenticatedClient(
-    http.Client(),
-    AccessCredentials(
-      AccessToken('Bearer', accessTokenTrimmed, DateTime.now().add(Duration(hours: 1)).toUtc()),
-      null, // Refresh token is null because we are manually setting the access token
-      //['https://www.googleapis.com/auth/cloud-platform'], // Scopes
-      PubSub.SCOPES,
-    ),
-  );
-
-  print(authClient);
-  return authClient;
-}
+// Future<http.Client> _getClient() async {
+//   try {
+//     return await clientViaApplicationDefaultCredentials(scopes: PubSub.SCOPES);
+//     // return await clientViaMetadataServer();
+//     //} on ServerRequestFailedException catch (ex) {
+//   } catch (ex) {
+//     print(ex.toString());
+//     // print(ex.responseContent);
+//     return await _getWorkloadIdentityFederationClient();
+//     // rethrow;
+//   }
+// }
+//
+// Future<http.Client> _getWorkloadIdentityFederationClient() async {
+//   final process = await Process.run('gcloud', ['auth', 'print-access-token']);
+//
+//   if (process.exitCode != 0) {
+//     throw Exception(
+//       'Command failed with exit code ${process.exitCode}: ${process.stderr}',
+//     );
+//   }
+//
+//   final accessToken = process.stdout as String;
+//   print(accessToken.length);
+//   print(accessToken.substring(0, 5));
+//   print(accessToken.substring(accessToken.length - 5));
+//
+//   final accessTokenTrimmed = accessToken.trimRight();
+//
+//   var authClient = authenticatedClient(
+//     http.Client(),
+//     AccessCredentials(
+//       AccessToken('Bearer', accessTokenTrimmed, DateTime.now().add(Duration(hours: 1)).toUtc()),
+//       null, // Refresh token is null because we are manually setting the access token
+//       //['https://www.googleapis.com/auth/cloud-platform'], // Scopes
+//       PubSub.SCOPES,
+//     ),
+//   );
+//
+//   print(authClient);
+//   return authClient;
+// }
