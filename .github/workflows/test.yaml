@@ -113,13 +113,13 @@ jobs:
 #            --role='roles/artifactregistry.reader' \
 #            --project=$PROJECT
 #
-      # We don't need Terraform until we build images,
-      # but the Google Cloud services take time to get enabled anyway.
-      # Killing time productively.
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.7.5"
-          terraform_wrapper: false
+#      # We don't need Terraform until we build images,
+#      # but the Google Cloud services take time to get enabled anyway.
+#      # Killing time productively.
+#      - uses: hashicorp/setup-terraform@v3
+#        with:
+#          terraform_version: "1.7.5"
+#          terraform_wrapper: false
 
 #      # TODO: terraform fmt
 #
@@ -143,35 +143,39 @@ jobs:
           echo "Version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: 'Submit a build'
-        run: |
-          SUBSTITUTIONS=(
-            "_VERSION=$VERSION"
-            "_DART_VERSION=$DART_VERSION"
-            "_REGION=$REGION"
-            "_REPOSITORY=my-repository"
-          ); gcloud builds \
-            submit \
-            --project=$PROJECT \
-            --substitutions="$(echo $(IFS=,; echo "${SUBSTITUTIONS[*]}"))" \
-            --config=capitalizer/cloudbuild.yaml \
-            capitalizer
+#      - name: 'Submit a build'
+#        run: |
+#          SUBSTITUTIONS=(
+#            "_VERSION=$VERSION"
+#            "_DART_VERSION=$DART_VERSION"
+#            "_REGION=$REGION"
+#            "_REPOSITORY=my-repository"
+#          ); gcloud builds \
+#            submit \
+#            --project=$PROJECT \
+#            --substitutions="$(echo $(IFS=,; echo "${SUBSTITUTIONS[*]}"))" \
+#            --config=capitalizer/cloudbuild.yaml \
+#            capitalizer
 
-      - name: 'Terraform'
-        run: |
-          cd terraform
-          envsubst < backend.tf.template > backend.tf
-          terraform init
-          terraform apply \
-            -auto-approve \
-            -var="PROJECT=$PROJECT" \
-            -var="REGION=$REGION" \
-            -var="ZONE=$ZONE" \
-            -var="VERSION=$VERSION"          
+#      - name: 'Terraform'
+#        run: |
+#          cd terraform
+#          envsubst < backend.tf.template > backend.tf
+#          terraform init
+#          terraform apply \
+#            -auto-approve \
+#            -var="PROJECT=$PROJECT" \
+#            -var="REGION=$REGION" \
+#            -var="ZONE=$ZONE" \
+#            -var="VERSION=$VERSION"
 
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: ${{ vars.DART_VERSION }}
+
+#      - name: 'Get key manually'
+#        run: |
+#          gcloud auth print-access-token
 
       - name: 'Test'
         run: |
