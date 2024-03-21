@@ -91,7 +91,7 @@ Future<http.Client> _getWorkloadIdentityFederationClient() async {
   var authClient = authenticatedClient(
     http.Client(),
     AccessCredentials(
-      AccessToken('Bearer', accessToken, DateTime.now().add(Duration(hours: 1))),
+      AccessToken('Bearer', accessToken, DateTime.now().add(Duration(hours: 1)).toUtc()),
       null, // Refresh token is null because we are manually setting the access token
       //['https://www.googleapis.com/auth/cloud-platform'], // Scopes
       PubSub.SCOPES,
