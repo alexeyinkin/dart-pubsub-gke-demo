@@ -176,6 +176,7 @@ jobs:
       - name: 'Test'
         run: |
           cd capitalizer
+          dart pub get
           dart test
 #      - name: 'Sleep 60 seconds'
 #        run: sleep 60
