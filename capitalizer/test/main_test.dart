@@ -87,6 +87,8 @@ Future<http.Client> _getWorkloadIdentityFederationClient() async {
 
   final accessToken = process.stdout as String;
   print(accessToken.length);
+  print(accessToken.substring(0, 5));
+  print(accessToken.substring(accessToken.length - 5));
 
   var authClient = authenticatedClient(
     http.Client(),
