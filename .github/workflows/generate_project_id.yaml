@@ -1,8 +1,27 @@
 on:
-  - workflow_dispatch
+  workflow_call:
+    outputs:
+      project:
+        value: ${{ jobs.default.outputs.project }}
+      timestamp:
+        value: ${{ jobs.default.outputs.timestamp }}
 
 jobs:
-  generate_project_name:
+  default:
     runs-on: ubuntu-latest
+
+    outputs:
+      project: ${{ steps.step1.outputs.project }}
+      timestamp: ${{ steps.step1.outputs.timestamp }}
+
     steps:
-      - run: echo
+      - name: 'Generate a project ID'
+        id: step1
+        run: |
+          export TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
+          export COMMIT_HASH=$(git rev-parse --short HEAD)
+          export PROJECT="p-$TIMESTAMP-$COMMIT_HASH"
+          echo "Timestamp: $TIMESTAMP"
+          echo "Project: $PROJECT"
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "project=$PROJECT" >> $GITHUB_OUTPUT

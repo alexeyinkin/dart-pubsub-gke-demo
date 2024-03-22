@@ -10,7 +10,12 @@ env:
   TF_LOG: DEBUG
 
 jobs:
-  stage:
+  generate_project_id:
+    uses: ./.github/workflows/generate_project_id.yaml
+
+  default:
     runs-on: ubuntu-latest
+    needs: generate_project_id
     steps:
-      - run: echo
+      - run: echo ${{ jobs.generate_project_id.outputs.project }}
+      - run: echo ${{ jobs.generate_project_id.outputs.timestamp }}
