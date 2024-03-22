@@ -2,4 +2,5 @@ on:
   - workflow_dispatch
 
 jobs:
-  delete: {}
+  delete:
+    steps: []
