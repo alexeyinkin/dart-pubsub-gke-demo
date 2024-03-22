@@ -40,12 +40,15 @@ jobs:
 
       - uses: 'google-github-actions/auth@v2'
         with:
-          workload_identity_provider: 'projects/${{ secrets.MASTER_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
-          service_account: 'project-creator@${{ secrets.MASTER_PROJECT_NAME }}.iam.gserviceaccount.com'
+          workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: 'deploy@${{ env.PROJECT }}.iam.gserviceaccount.com'
+#          workload_identity_provider: 'projects/${{ secrets.MASTER_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
+#          service_account: 'project-creator@${{ secrets.MASTER_PROJECT_NAME }}.iam.gserviceaccount.com'
 
       - name: 'Create the Google Cloud Project if it does not exist'
         id: create_project
         run: |
+          gcloud projects list # TODO: Delete
           set +e
           gcloud projects \
             create $PROJECT \

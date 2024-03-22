@@ -10,6 +10,7 @@ jobs:
     needs: generate_deployment_values
     with:
       project: 'p-20240319-141424-7123eaf'
+      project_number: 935015502146
       timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
     secrets: inherit
     permissions:
