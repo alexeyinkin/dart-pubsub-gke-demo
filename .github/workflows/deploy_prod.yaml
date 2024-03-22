@@ -2,7 +2,12 @@ on:
   - workflow_dispatch
 
 jobs:
-  deploy_prod:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo
+  generate_deployment_values:
+    uses: ./.github/workflows/generate_deployment_values.yaml
+
+  deploy:
+    uses: ./.github/workflows/deploy.yaml
+    needs: generate_deployment_values
+    with:
+      project: 'p-20240319-141424-7123eaf'
+      timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}

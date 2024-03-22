@@ -1,8 +1,59 @@
 on:
-  - workflow_dispatch
+  workflow_call:
+    inputs:
+      project:
+        required: true
+        type: string
+      timestamp:
+        required: true
+        type: string
+    secrets:
+      BILLING_ACCOUNT:
+        required: true
 
 jobs:
-  deploy:
+  _:
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo
+      - uses: actions/checkout@v4
+
+      - name: 'Exporting the environment variables'
+        run: |
+          echo "DART_VERSION=${{ vars.DART_VERSION }}" >> $GITHUB_ENV
+          echo "PROJECT=${{ inputs.project }}" >> $GITHUB_ENV
+          echo "REGION=${{ vars.REGION }}" >> $GITHUB_ENV
+          echo "ZONE=${{ vars.ZONE }}" >> $GITHUB_ENV
+
+      - name: 'Create the Google Cloud Project if it does not exist'
+        id: create_project
+        run: |
+          gcloud projects \
+            create $PROJECT \
+            --name=$PROJECT \
+            --organization=${{ secrets.ORGANIZATION }} \
+            || true
+          export EXIT_CODE=$?
+          echo "Exit code: $EXIT_CODE"
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "created=true" >> $GITHUB_OUTPUT
+          else
+            echo "created=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 'Enabling the services'
+        if: steps.create_project.created == 'true'
+        run: |
+          gcloud services enable cloudbilling.googleapis.com --project=$PROJECT
+          gcloud services enable artifactregistry.googleapis.com --project=$PROJECT
+          gcloud services enable cloudbuild.googleapis.com --project=$PROJECT
+          gcloud services enable container.googleapis.com --project=$PROJECT
+          gcloud services enable iam.googleapis.com --project=$PROJECT
+          gcloud services enable pubsub.googleapis.com --project=$PROJECT
+
+      - name: 'Setting the billing account'
+        if: steps.create_project.created == 'true'
+        run: |          
+          gcloud billing \
+            projects link $PROJECT \
+            --billing-account=${{ secrets.BILLING_ACCOUNT }}
