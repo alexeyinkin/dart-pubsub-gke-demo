@@ -140,9 +140,9 @@ jobs:
               deploy@$PROJECT.iam.gserviceaccount.com \
               /dev/stdin
 
-      - name: 'Sign out of Google Cloud'
-        run: |
-          gcloud auth revoke --all
+#      - name: 'Sign out of Google Cloud'
+#        run: |
+#          gcloud auth revoke --all
 
       - uses: 'google-github-actions/auth@v2'
         with:
