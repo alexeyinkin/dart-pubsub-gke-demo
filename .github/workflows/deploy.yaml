@@ -77,6 +77,7 @@ jobs:
           gcloud services enable cloudbilling.googleapis.com --project=$PROJECT
           gcloud services enable artifactregistry.googleapis.com --project=$PROJECT
           gcloud services enable cloudbuild.googleapis.com --project=$PROJECT
+          gcloud services enable cloudresourcemanager.googleapis.com --project=$PROJECT
           gcloud services enable container.googleapis.com --project=$PROJECT
           gcloud services enable iam.googleapis.com --project=$PROJECT
           gcloud services enable pubsub.googleapis.com --project=$PROJECT
@@ -175,8 +176,8 @@ jobs:
           timeout_minutes: 1
           max_attempts: 5
           command: |
-            gcloud artifacts repositories list
-            #gcloud projects list
+            gcloud projects list
+            #gcloud artifacts repositories list
 
       - name: 'Submit a build'
         run: |
