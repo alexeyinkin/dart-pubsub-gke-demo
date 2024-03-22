@@ -169,6 +169,14 @@ jobs:
           echo "Version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
+      - name: 'Wait until IAM policy takes effect'
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e
+        with:
+          timeout_minutes: 3
+          max_attempts: 5
+          command: |
+            gcloud projects list
+
       - name: 'Submit a build'
         run: |
           SUBSTITUTIONS=(
