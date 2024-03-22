@@ -3,4 +3,5 @@ on:
 
 jobs:
   delete:
-    steps: []
+    steps:
+      - run: echo
