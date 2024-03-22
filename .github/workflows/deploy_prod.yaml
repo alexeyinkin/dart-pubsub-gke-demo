@@ -12,3 +12,6 @@ jobs:
       project: 'p-20240319-141424-7123eaf'
       timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
     secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
