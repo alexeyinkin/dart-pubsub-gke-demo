@@ -46,12 +46,13 @@ jobs:
       - name: 'Create the Google Cloud Project if it does not exist'
         id: create_project
         run: |
+          set +e
           gcloud projects \
             create $PROJECT \
             --name=$PROJECT \
-            --organization=${{ secrets.ORGANIZATION }} \
-            || true
+            --organization=${{ secrets.ORGANIZATION }}
           export EXIT_CODE=$?
+          set -e
           echo "Exit code: $EXIT_CODE"
           if [ $EXIT_CODE -eq 0 ]; then
             echo "created=true" >> $GITHUB_OUTPUT
@@ -62,7 +63,7 @@ jobs:
       - name: 'Get the project number'
         if: env.PROJECT_NUMBER == ''
         run: |
-          export PROJECT_NUMBER = $(gcloud projects describe $PROJECT --format='value(projectNumber)')
+          export PROJECT_NUMBER=$(gcloud projects describe $PROJECT --format='value(projectNumber)')
           echo "Project Number: $PROJECT_NUMBER"
           echo "PROJECT_NUMBER=$PROJECT_NUMBER" >> $GITHUB_ENV
 
