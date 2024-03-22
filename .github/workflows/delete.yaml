@@ -3,5 +3,6 @@ on:
 
 jobs:
   delete:
+    runs-on: ubuntu-latest
     steps:
       - run: echo

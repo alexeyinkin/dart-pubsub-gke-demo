@@ -1,2 +1,8 @@
 on:
   - workflow_dispatch
+
+jobs:
+  stage_delete:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo

@@ -9,3 +9,8 @@ on:
 env:
   TF_LOG: DEBUG
 
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo

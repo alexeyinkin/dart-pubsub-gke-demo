@@ -1,2 +1,8 @@
 on:
   - workflow_dispatch
+
+jobs:
+  generate_project_name:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo
