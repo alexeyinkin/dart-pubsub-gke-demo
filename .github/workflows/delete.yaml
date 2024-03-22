@@ -5,4 +5,16 @@ jobs:
   delete:
     runs-on: ubuntu-latest
     steps:
-      - run: echo
+      - name: 'Reading the deployers list'
+        run: |
+          input_file="infrastructure/deployers.txt"
+          output=""
+          while IFS= read -r line; do
+            trimmed=$(echo "$line" | xargs)
+            if [ -z "$output" ]; then
+              output="'$trimmed'"
+            else
+              output="$output,'$trimmed'"
+            fi
+          done < "$input_file"
+          echo "$output"

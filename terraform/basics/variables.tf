@@ -1,3 +1,0 @@
-variable "PROJECT" {
-  type = string
-}
