@@ -56,7 +56,7 @@ jobs:
           fi
 
       - name: 'Get the project number'
-        if: env.PROJECT_NUMBER == ""
+        if: env.PROJECT_NUMBER == ''
         run: |
           export PROJECT_NUMBER = $(gcloud projects describe $PROJECT --format='value(projectNumber)')
           echo "Project Number: $PROJECT_NUMBER"
