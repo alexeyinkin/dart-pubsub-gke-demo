@@ -1,4 +1,4 @@
-// Run: GOOGLE_APPLICATION_CREDENTIALS='../keys/pubsub.json' dart lib/main.dart
+// Run: GOOGLE_APPLICATION_CREDENTIALS='../keys/capitalizer.json' dart lib/main.dart
 
 import 'dart:convert';
 import 'dart:io';

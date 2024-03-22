@@ -1,0 +1,8 @@
+on:
+  - workflow_dispatch
+
+jobs:
+  deploy_prod:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo
