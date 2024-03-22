@@ -134,7 +134,7 @@ jobs:
             --location="global" \
             --workload-identity-pool="github" \
             --project=$PROJECT || true
-          envsubst < deploy-policy.json | \
+          envsubst < infrastructure/deploy-policy.json | \
             gcloud iam \
               service-accounts set-iam-policy \
               deploy@$PROJECT.iam.gserviceaccount.com \
