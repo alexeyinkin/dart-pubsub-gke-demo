@@ -10,12 +10,12 @@ env:
   TF_LOG: DEBUG
 
 jobs:
-  generate_project_id:
-    uses: ./.github/workflows/generate_project_id.yaml
+  generate_deployment_values:
+    uses: ./.github/workflows/generate_deployment_values.yaml
 
   _:
     runs-on: ubuntu-latest
-    needs: generate_project_id
+    needs: generate_deployment_values
     steps:
-      - run: echo ${{ needs.generate_project_id.outputs.project }}
-      - run: echo ${{ needs.generate_project_id.outputs.timestamp }}
+      - run: echo ${{ needs.generate_deployment_values.outputs.project }}
+      - run: echo ${{ needs.generate_deployment_values.outputs.timestamp }}
