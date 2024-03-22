@@ -1,0 +1,11 @@
+on:
+  - workflow_call:
+      outputs:
+        output_param:
+          description: "Project ID"
+          value: ${{ steps.step1.outputs.output_value }}
+  - workflow_dispatch
+
+env:
+  TF_LOG: DEBUG
+
