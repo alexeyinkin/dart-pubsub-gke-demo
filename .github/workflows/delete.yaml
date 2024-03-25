@@ -1,5 +1,15 @@
 on:
-  - workflow_dispatch
+  workflow_call:
+    inputs:
+      project:
+        required: true
+        type: string
+      project_number:
+        required: false
+        type: string
+      timestamp:
+        required: true
+        type: string
 
 jobs:
   delete:
@@ -7,16 +17,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 'Reading the deployers list'
+      - name: 'Export the environment variables'
         run: |
-          input_file="infrastructure/deployers.txt"
-          output=""
-          while IFS= read -r line; do
-            trimmed=$(echo "$line" | xargs)
-            if [ -z "$output" ]; then
-              output="'$trimmed'"
-            else
-              output="$output,'$trimmed'"
-            fi
-          done < "$input_file"
-          echo "$output"
+          #echo "DART_VERSION=${{ vars.DART_VERSION }}" >> $GITHUB_ENV
+          echo "PROJECT=${{ inputs.project }}" >> $GITHUB_ENV
+          echo "PROJECT_NUMBER=${{ inputs.project_number }}" >> $GITHUB_ENV
+          echo "REGION=${{ vars.REGION }}" >> $GITHUB_ENV
+          #echo "REPO=${{ github.repository }}" >> $GITHUB_ENV
+          #echo "TIMESTAMP=${{ inputs.timestamp }}" >> $GITHUB_ENV
+          echo "ZONE=${{ vars.ZONE }}" >> $GITHUB_ENV
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: 'deploy@${{ env.PROJECT }}.iam.gserviceaccount.com'
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ vars.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: 'Terraform'
+        run: |
+          cd infrastructure/terraform
+          envsubst < backend.tf.template > backend.tf
+          terraform destroy \
+            -auto-approve \
+            -var="PROJECT=$PROJECT" \
+            -var="REGION=$REGION" \
+            -var="ZONE=$ZONE" \
+            -var='VERSION=""'
+            #-var="VERSION=$VERSION"
