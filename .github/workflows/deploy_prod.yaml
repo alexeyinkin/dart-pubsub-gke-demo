@@ -10,8 +10,8 @@ jobs:
     needs:
       - generate_deployment_values
     with:
-      project: ${{ secrets.PROD_PROJECT }}
-      project_number: ${{ secrets.PROD_PROJECT_NUMBER }}
+      project: ${{ vars.PROD_PROJECT }}
+      project_number: ${{ vars.PROD_PROJECT_NUMBER }}
       timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
     secrets: inherit
     permissions:
@@ -22,7 +22,7 @@ jobs:
     needs:
       - deploy
     with:
-      project: ${{ secrets.PROD_PROJECT }}
-      project_number: ${{ secrets.PROD_PROJECT_NUMBER }}
+      project: ${{ vars.PROD_PROJECT }}
+      project_number: ${{ vars.PROD_PROJECT_NUMBER }}
     permissions:
       id-token: write

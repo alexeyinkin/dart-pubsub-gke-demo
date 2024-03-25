@@ -1,17 +1,7 @@
 on:
   - workflow_dispatch
 
-#env:
-#  project: 'projects/${{ secrets.MASTER_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
-#  project_number: 'project-creator@${{ secrets.MASTER_PROJECT_NAME }}.iam.gserviceaccount.com'
-
 jobs:
-  test:
-    uses: ./.github/workflows/test.yaml
-    with:
-      project: ${{ vars.DART_VERSION }}
-      project_number: ${{ vars.ZONE }}
-
   _:
     permissions:
       id-token: write
