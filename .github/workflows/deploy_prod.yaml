@@ -6,15 +6,28 @@ env:
   PROJECT_NUMBER: 935015502146
 
 jobs:
+  constants:
+    runs-on: ubuntu-latest
+    outputs:
+      project: ${{ steps._.outputs.project }}
+      project_number: ${{ steps._.outputs.project_number }}
+    steps:
+      - id: _
+        run: |
+          echo "project=$PROJECT" >> $GITHUB_OUTPUT
+          echo "project_number=$PROJECT_NUMBER" >> $GITHUB_OUTPUT
+
   generate_deployment_values:
     uses: ./.github/workflows/generate_deployment_values.yaml
 
   deploy:
     uses: ./.github/workflows/deploy.yaml
-    needs: generate_deployment_values
+    needs:
+      - constants
+      - generate_deployment_values
     with:
-      project: ${{ env.PROJECT }}
-      project_number: ${{ env.PROJECT_NUMBER }}
+      project: ${{ needs.constants.outputs.project }}
+      project_number: ${{ needs.constants.outputs.project_number }}
       timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
     secrets: inherit
     permissions:
@@ -25,8 +38,8 @@ jobs:
     uses: ./.github/workflows/test.yaml
     needs: deploy
     with:
-      project: ${{ env.PROJECT }}
-      project_number: ${{ env.PROJECT_NUMBER }}
+      project: ${{ needs.constants.outputs.project }}
+      project_number: ${{ needs.constants.outputs.project_number }}
     permissions:
       #contents: read
       id-token: write
