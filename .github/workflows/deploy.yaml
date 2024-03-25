@@ -107,7 +107,7 @@ jobs:
       - name: 'Create the service account for Terraform if it does not exist'
         run: |
           EMAIL=deploy@$PROJECT.iam.gserviceaccount.com
-          if gcloud iam service-accounts list --project=$PROJECT | grep "$EMAIL"; then
+          if gcloud iam service-accounts list --project=$PROJECT | grep $EMAIL; then
             echo "Exists."
           else
             echo "Creating."
@@ -196,7 +196,7 @@ jobs:
 
       - name: 'Create the Artifact Registry repository if it does not exist'
         run: |
-          if gcloud artifacts repositories list --location=$REGION --filter="name:my-repository"; then
+          if gcloud artifacts repositories list --location=$REGION --project=$PROJECT | grep my-repository; then
             echo "Exists."
           else
             echo "Creating."
