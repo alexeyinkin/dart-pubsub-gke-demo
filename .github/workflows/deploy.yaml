@@ -89,23 +89,37 @@ jobs:
             projects link $PROJECT \
             --billing-account=${{ secrets.BILLING_ACCOUNT }}
 
-      # TODO: WIF
-      - name: 'Prepare the Google Cloud project for Terraform'
-        if: steps.create_project.created == 'true'
+      - name: 'Creating the state bucket for Terraform if it does not exist'
+        #if: steps.create_project.created == 'true'
         run: |
-          gcloud storage \
-            buckets create "gs://$PROJECT-tf-state" \
-            --location=$REGION \
-            --uniform-bucket-level-access \
-            --project=$PROJECT
-          gcloud iam \
-            service-accounts create "deploy" \
-            --project=$PROJECT
-          gcloud projects \
-            add-iam-policy-binding $PROJECT \
-            --member="serviceAccount:deploy@$PROJECT.iam.gserviceaccount.com" \
-            --role="roles/owner" \
-            --project=$PROJECT
+          BUCKET="gs://$PROJECT-tf-state"
+          if gsutil ls $BUCKET &> /dev/null; then
+            echo "Bucket exists."
+          else
+            echo "Creating the bucket."
+            gcloud storage \
+              buckets create  \
+              --location=$REGION \
+              --uniform-bucket-level-access \
+              --project=$PROJECT
+          fi
+
+      - name: 'Creating the service account for Terraform if it does not exist'
+        run: |
+          EMAIL=deploy@$PROJECT.iam.gserviceaccount.com
+          if gcloud iam service-accounts list --project=$PROJECT | grep "$EMAIL"; then
+            echo "Service account exists."
+          else
+            echo "Creating the service account."
+            gcloud iam \
+              service-accounts create "deploy" \
+              --project=$PROJECT
+            gcloud projects \
+              add-iam-policy-binding $PROJECT \
+              --member="serviceAccount:$EMAIL" \
+              --role="roles/owner" \
+              --project=$PROJECT
+          fi
 
       - name: 'Reading the deployers list'
         run: |
