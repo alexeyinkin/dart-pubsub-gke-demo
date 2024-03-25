@@ -85,7 +85,7 @@ jobs:
         run: |
           set +e
           gcloud storage buckets describe $STATE_BUCKET
-          [ $? -eq 0 ] && "exists=true" >> $GITHUB_OUTPUT || "exists=false" >> $GITHUB_OUTPUT
+          [ $? -eq 0 ] && echo "exists=true" >> $GITHUB_OUTPUT || echo "exists=false" >> $GITHUB_OUTPUT
 
       - name: 'Create the state bucket for Terraform'
         if: steps.probe_bucket.outputs.exists == 'false'
@@ -101,7 +101,7 @@ jobs:
         run: |
           set +e
           gcloud iam service-accounts list --project=$PROJECT | grep deploy@$PROJECT.iam.gserviceaccount.com
-          [ $? -eq 0 ] && "exists=true" >> $GITHUB_OUTPUT || "exists=false" >> $GITHUB_OUTPUT
+          [ $? -eq 0 ] && echo "exists=true" >> $GITHUB_OUTPUT || echo "exists=false" >> $GITHUB_OUTPUT
 
       - name: 'Create the service account for Terraform'
         if: steps.probe_deploy_service_account.outputs.exists == 'false'
@@ -189,7 +189,7 @@ jobs:
         run: |
           set +e
           gcloud artifacts repositories list --location=$REGION --project=$PROJECT | grep my-repository
-          [ $? -eq 0 ] && "exists=true" >> $GITHUB_OUTPUT || "exists=false" >> $GITHUB_OUTPUT
+          [ $? -eq 0 ] && echo "exists=true" >> $GITHUB_OUTPUT || echo "exists=false" >> $GITHUB_OUTPUT
 
       - name: 'Create the Artifact Registry repository'
         if: steps.probe_repository.outputs.exists != 'false'
