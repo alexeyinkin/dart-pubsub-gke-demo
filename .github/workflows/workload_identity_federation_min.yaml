@@ -3,6 +3,12 @@ on:
 
 jobs:
   test:
+    uses: ./.github/workflows/test.yaml
+    with:
+      project: 'projects/${{ secrets.MASTER_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
+      project_number: 'project-creator@${{ secrets.MASTER_PROJECT_NAME }}.iam.gserviceaccount.com'
+
+  _:
     permissions:
       id-token: write
 
