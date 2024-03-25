@@ -96,7 +96,7 @@ jobs:
         #if: steps.create_project.created == 'true'
         run: |
           BUCKET="gs://$PROJECT-tf-state"
-          if gsutil ls $BUCKET > /dev/null; then
+          if gcloud storage buckets describe $BUCKET; then
             echo "Exists."
           else
             echo "Creating."
