@@ -26,7 +26,6 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      #contents: read
       id-token: write
 
     steps:
@@ -39,33 +38,23 @@ jobs:
           echo "PROJECT_NUMBER=${{ inputs.project_number }}" >> $GITHUB_ENV
           echo "REGION=${{ vars.REGION }}" >> $GITHUB_ENV
           echo "REPO=${{ github.repository }}" >> $GITHUB_ENV
+          echo "STATE_BUCKET=gs://$PROJECT-tf-state" >> $GITHUB_ENV
           echo "TIMESTAMP=${{ inputs.timestamp }}" >> $GITHUB_ENV
           echo "ZONE=${{ vars.ZONE }}" >> $GITHUB_ENV
 
       - uses: 'google-github-actions/auth@v2'
         with:
-#          workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
-#          service_account: 'deploy@${{ env.PROJECT }}.iam.gserviceaccount.com'
           workload_identity_provider: 'projects/${{ secrets.MASTER_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: 'project-creator@${{ secrets.MASTER_PROJECT_NAME }}.iam.gserviceaccount.com'
 
       - name: 'Create the Google Cloud Project if it does not exist'
         id: create_project
         run: |
-          # gcloud projects list # TODO: Delete
           set +e
           gcloud projects \
             create $PROJECT \
             --name=$PROJECT \
             --organization=${{ secrets.ORGANIZATION }}
-          export EXIT_CODE=$?
-          set -e
-          echo "Exit code: $EXIT_CODE"
-          if [ $EXIT_CODE -eq 0 ]; then
-            echo "created=true" >> $GITHUB_OUTPUT
-          else
-            echo "created=false" >> $GITHUB_OUTPUT
-          fi
 
       - name: 'Get the project number'
         if: env.PROJECT_NUMBER == ''
@@ -75,7 +64,6 @@ jobs:
           echo "PROJECT_NUMBER=$PROJECT_NUMBER" >> $GITHUB_ENV
 
       - name: 'Enable the services'
-        #if: steps.create_project.created == 'true'
         run: |
           gcloud services enable cloudbilling.googleapis.com --project=$PROJECT
           gcloud services enable artifactregistry.googleapis.com --project=$PROJECT
@@ -86,43 +74,45 @@ jobs:
           gcloud services enable pubsub.googleapis.com --project=$PROJECT
 
       - name: 'Set the billing account'
-        if: steps.create_project.created == 'true'
         run: |          
           gcloud billing \
             projects link $PROJECT \
             --billing-account=${{ secrets.BILLING_ACCOUNT }}
 
-      - name: 'Create the state bucket for Terraform if it does not exist'
-        #if: steps.create_project.created == 'true'
+      - name: 'Check if the state bucket for Terraform exists'
+        id: probe_bucket
         run: |
-          BUCKET="gs://$PROJECT-tf-state"
-          if gcloud storage buckets describe $BUCKET; then
-            echo "Exists."
-          else
-            echo "Creating."
-            gcloud storage \
-              buckets create $BUCKET \
-              --location=$REGION \
-              --uniform-bucket-level-access \
-              --project=$PROJECT
-          fi
+          set +e
+          gcloud storage buckets describe $STATE_BUCKET
+          [ $? -eq 0 ] && "exists=true" >> $GITHUB_OUTPUT || "exists=false" >> $GITHUB_OUTPUT
 
-      - name: 'Create the service account for Terraform if it does not exist'
+      - name: 'Create the state bucket for Terraform'
+        if: steps.probe_bucket.outputs.exists == 'false'
         run: |
-          EMAIL=deploy@$PROJECT.iam.gserviceaccount.com
-          if gcloud iam service-accounts list --project=$PROJECT | grep $EMAIL; then
-            echo "Exists."
-          else
-            echo "Creating."
-            gcloud iam \
-              service-accounts create "deploy" \
-              --project=$PROJECT
-            gcloud projects \
-              add-iam-policy-binding $PROJECT \
-              --member="serviceAccount:$EMAIL" \
-              --role="roles/owner" \
-              --project=$PROJECT
-          fi
+          gcloud storage \
+            buckets create $STATE_BUCKET \
+            --location=$REGION \
+            --uniform-bucket-level-access \
+            --project=$PROJECT
+
+      - name: 'Check if the service account for Terraform exists'
+        id: probe_deploy_service_account
+        run: |
+          set +e
+          gcloud iam service-accounts list --project=$PROJECT | grep deploy@$PROJECT.iam.gserviceaccount.com
+          [ $? -eq 0 ] && "exists=true" >> $GITHUB_OUTPUT || "exists=false" >> $GITHUB_OUTPUT
+
+      - name: 'Create the service account for Terraform'
+        if: steps.probe_deploy_service_account.outputs.exists == 'false'
+        run: |
+          gcloud iam \
+            service-accounts create "deploy" \
+            --project=$PROJECT
+          gcloud projects \
+            add-iam-policy-binding $PROJECT \
+            --member="serviceAccount:deploy@$PROJECT.iam.gserviceaccount.com" \
+            --role="roles/owner" \
+            --project=$PROJECT
 
       - name: 'Reading the deployers list'
         run: |
@@ -162,10 +152,6 @@ jobs:
               deploy@$PROJECT.iam.gserviceaccount.com \
               /dev/stdin
 
-#      - name: 'Sign out of Google Cloud'
-#        run: |
-#          gcloud auth revoke --all
-
       - uses: 'google-github-actions/auth@v2'
         with:
           workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
@@ -197,18 +183,21 @@ jobs:
             gcloud projects list
             #gcloud artifacts repositories list
 
-      - name: 'Create the Artifact Registry repository if it does not exist'
+      - name: 'Check if the Artifact Registry repository exists'
+        id: probe_repository
         run: |
-          if gcloud artifacts repositories list --location=$REGION --project=$PROJECT | grep my-repository; then
-            echo "Exists."
-          else
-            echo "Creating."
-            gcloud artifacts \
-              repositories create my-repository \
-              --repository-format=DOCKER \
-              --location=$REGION \
-              --project=$PROJECT
-          fi
+          set +e
+          gcloud artifacts repositories list --location=$REGION --project=$PROJECT | grep my-repository
+          [ $? -eq 0 ] && "exists=true" >> $GITHUB_OUTPUT || "exists=false" >> $GITHUB_OUTPUT
+
+      - name: 'Create the Artifact Registry repository'
+        if: steps.probe_repository.outputs.exists != 'false'
+        run: |
+          gcloud artifacts \
+            repositories create my-repository \
+            --repository-format=DOCKER \
+            --location=$REGION \
+            --project=$PROJECT
 
       - name: 'Submit a build'
         run: |
