@@ -36,7 +36,9 @@ jobs:
 
   test:
     uses: ./.github/workflows/test.yaml
-    needs: deploy
+    needs:
+      - constants
+      - deploy
     with:
       project: ${{ needs.constants.outputs.project }}
       project_number: ${{ needs.constants.outputs.project_number }}
