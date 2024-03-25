@@ -46,3 +46,8 @@ jobs:
             -var="ZONE=$ZONE" \
             -var='VERSION=""'
             #-var="VERSION=$VERSION"
+
+      - name: 'Delete the project'
+        if: always()
+        run: |
+          gcloud projects delete $PROJECT --quiet

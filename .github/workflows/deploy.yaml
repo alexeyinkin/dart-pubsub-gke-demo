@@ -10,6 +10,9 @@ on:
       timestamp:
         required: true
         type: string
+    outputs:
+      project_number:
+        value: ${{ env.PROJECT_NUMBER }}
     secrets:
       BILLING_ACCOUNT:
         required: true
