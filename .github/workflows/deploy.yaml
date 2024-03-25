@@ -55,6 +55,7 @@ jobs:
             create $PROJECT \
             --name=$PROJECT \
             --organization=${{ secrets.ORGANIZATION }}
+          true
 
       - name: 'Get the project number'
         if: env.PROJECT_NUMBER == ''
