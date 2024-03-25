@@ -1,6 +1,10 @@
 on:
   - workflow_dispatch
 
+env:
+  PROJECT: 'p-20240319-141424-7123eaf'
+  PROJECT_NUMBER: 935015502146
+
 jobs:
   generate_deployment_values:
     uses: ./.github/workflows/generate_deployment_values.yaml
@@ -9,10 +13,20 @@ jobs:
     uses: ./.github/workflows/deploy.yaml
     needs: generate_deployment_values
     with:
-      project: 'p-20240319-141424-7123eaf'
-      project_number: 935015502146
+      project: ${{ env.PROJECT }}
+      project_number: ${{ env.PROJECT_NUMBER }}
       timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
     secrets: inherit
     permissions:
-      contents: read
+      #contents: read
+      id-token: write
+
+  test:
+    uses: ./.github/workflows/test.yaml
+    needs: deploy
+    with:
+      project: ${{ env.PROJECT }}
+      project_number: ${{ env.PROJECT_NUMBER }}
+    permissions:
+      #contents: read
       id-token: write

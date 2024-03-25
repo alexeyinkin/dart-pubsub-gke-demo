@@ -18,12 +18,15 @@ on:
       MASTER_PROJECT_NUMBER:
         required: true
 
+env:
+  TF_LOG: DEBUG
+
 jobs:
   _:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      #contents: read
       id-token: write
 
     steps:
