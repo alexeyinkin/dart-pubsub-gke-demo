@@ -10,9 +10,11 @@ on:
       timestamp:
         required: true
         type: string
+
     outputs:
       project_number:
-        value: ${{ env.PROJECT_NUMBER }}
+        value: ${{ jobs._.steps.export_project_number.outputs.value }}
+
     secrets:
       BILLING_ACCOUNT:
         required: true
@@ -66,6 +68,11 @@ jobs:
           export PROJECT_NUMBER=$(gcloud projects describe $PROJECT --format='value(projectNumber)')
           echo "Project Number: $PROJECT_NUMBER"
           echo "PROJECT_NUMBER=$PROJECT_NUMBER" >> $GITHUB_ENV
+
+      - name: 'Export the project number'
+        id: export_project_number
+        run: |
+          echo "value=$PROJECT_NUMBER" >> $GITHUB_OUTPUT
 
       - name: 'Enable the services'
         run: |
