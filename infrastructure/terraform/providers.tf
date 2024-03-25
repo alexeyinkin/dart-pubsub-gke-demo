@@ -13,9 +13,9 @@ terraform {
 }
 
 provider "google" {
-  project     = var.PROJECT
-  region      = var.REGION
-  zone        = var.ZONE
+  project = var.PROJECT
+  region  = var.REGION
+  zone    = var.ZONE
 }
 
 data "google_client_config" "default" {
