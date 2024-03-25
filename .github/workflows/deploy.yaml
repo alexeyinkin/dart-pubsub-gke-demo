@@ -192,7 +192,7 @@ jobs:
           [ $? -eq 0 ] && echo "exists=true" >> $GITHUB_OUTPUT || echo "exists=false" >> $GITHUB_OUTPUT
 
       - name: 'Create the Artifact Registry repository'
-        if: steps.probe_repository.outputs.exists != 'false'
+        if: steps.probe_repository.outputs.exists == 'false'
         run: |
           gcloud artifacts \
             repositories create my-repository \
