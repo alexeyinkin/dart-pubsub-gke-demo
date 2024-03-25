@@ -1,8 +1,56 @@
 on:
   - workflow_dispatch
 
+env:
+  PROJECT: 'p-20240319-141424-7123eaf'
+  PROJECT_NUMBER: 935015502146
+
 jobs:
-  stage_delete:
+  constants:
     runs-on: ubuntu-latest
+    outputs:
+      project: ${{ steps._.outputs.project }}
+      project_number: ${{ steps._.outputs.project_number }}
     steps:
-      - run: echo
+      - id: _
+        run: |
+          echo "project=$PROJECT" >> $GITHUB_OUTPUT
+          echo "project_number=$PROJECT_NUMBER" >> $GITHUB_OUTPUT
+
+  generate_deployment_values:
+    uses: ./.github/workflows/generate_deployment_values.yaml
+
+  deploy:
+    uses: ./.github/workflows/deploy.yaml
+    needs:
+      - constants
+      - generate_deployment_values
+    with:
+      project: ${{ needs.constants.outputs.project }}
+      project_number: ${{ needs.constants.outputs.project_number }}
+      timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
+    secrets: inherit
+    permissions:
+      id-token: write
+
+  test:
+    uses: ./.github/workflows/test.yaml
+    needs:
+      - constants
+      - deploy
+    with:
+      project: ${{ needs.constants.outputs.project }}
+      project_number: ${{ needs.constants.outputs.project_number }}
+    permissions:
+      id-token: write
+
+  delete:
+    uses: ./.github/workflows/delete.yaml
+    needs:
+      - constants
+      - test
+    with:
+      project: ${{ needs.constants.outputs.project }}
+      project_number: ${{ needs.constants.outputs.project_number }}
+    permissions:
+      id-token: write

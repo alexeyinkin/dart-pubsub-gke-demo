@@ -31,7 +31,6 @@ jobs:
       timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
     secrets: inherit
     permissions:
-      #contents: read
       id-token: write
 
   test:
@@ -43,5 +42,4 @@ jobs:
       project: ${{ needs.constants.outputs.project }}
       project_number: ${{ needs.constants.outputs.project_number }}
     permissions:
-      #contents: read
       id-token: write

@@ -7,9 +7,9 @@ on:
       project_number:
         required: false
         type: string
-      timestamp:
-        required: true
-        type: string
+#      timestamp:
+#        required: true
+#        type: string
 
 jobs:
   delete:
