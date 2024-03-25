@@ -41,6 +41,7 @@ jobs:
         run: |
           cd infrastructure/terraform
           envsubst < backend.tf.template > backend.tf
+          terraform init
           terraform destroy \
             -auto-approve \
             -var="PROJECT=$PROJECT" \
