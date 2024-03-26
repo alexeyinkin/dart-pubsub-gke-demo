@@ -14,6 +14,8 @@ on:
     outputs:
       project_number:
         value: ${{ jobs._.steps.export_project_number.outputs.value }}
+      project_number_indirect:
+        value: ${{ jobs._.outputs.project_number }}
 
     secrets:
       BILLING_ACCOUNT:
@@ -32,6 +34,9 @@ jobs:
 
     permissions:
       id-token: write
+
+    outputs:
+      project_number: ${{ steps.export_project_number.outputs.value }}
 
     steps:
       - uses: actions/checkout@v4
@@ -125,7 +130,7 @@ jobs:
             --role="roles/owner" \
             --project=$PROJECT
 
-      - name: 'Reading the deployers list'
+      - name: 'Read the deployers list'
         run: |
           input_file="infrastructure/deployers.txt"
           output=""

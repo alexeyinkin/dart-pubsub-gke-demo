@@ -38,6 +38,7 @@ jobs:
       - deploy
     with:
       project: ${{ needs.get_environment_values.outputs.project }}
-      project_number: ${{ needs.get_environment_values.outputs.project_number }}
+      project_number: ${{ needs.deploy.outputs.project_number }}
+      #project_number: ${{ needs.get_environment_values.outputs.project_number }}
     permissions:
       id-token: write
