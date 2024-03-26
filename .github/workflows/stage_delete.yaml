@@ -10,7 +10,7 @@ jobs:
     needs:
       - generate_deployment_values
     with:
-      project: ${{ needs.generate_deployment_values.output.project }}
+      project: ${{ needs.generate_deployment_values.outputs.project }}
       timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
     secrets: inherit
     permissions:
