@@ -16,7 +16,6 @@ jobs:
 
   generate_deployment_values:
     uses: ./.github/workflows/generate_deployment_values.yaml
-    needs: env_test
 
   deploy:
     uses: ./.github/workflows/deploy.yaml
