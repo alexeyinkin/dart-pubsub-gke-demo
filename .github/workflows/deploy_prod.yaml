@@ -1,6 +1,9 @@
 on:
   - workflow_dispatch
 
+environment:
+  name: prod
+
 jobs:
   generate_deployment_values:
     uses: ./.github/workflows/generate_deployment_values.yaml
@@ -10,8 +13,8 @@ jobs:
     needs:
       - generate_deployment_values
     with:
-      project: ${{ vars.PROD_PROJECT }}
-      project_number: ${{ vars.PROD_PROJECT_NUMBER }}
+      project: ${{ vars.PROJECT }}
+      project_number: ${{ vars.PROJECT_NUMBER }}
       timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
     secrets: inherit
     permissions:
@@ -22,7 +25,7 @@ jobs:
     needs:
       - deploy
     with:
-      project: ${{ vars.PROD_PROJECT }}
-      project_number: ${{ vars.PROD_PROJECT_NUMBER }}
+      project: ${{ vars.PROJECT }}
+      project_number: ${{ vars.PROJECT_NUMBER }}
     permissions:
       id-token: write
