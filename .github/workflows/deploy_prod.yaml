@@ -25,7 +25,7 @@ jobs:
       - generate_deployment_values
     with:
       project: ${{ needs.get_environment_values.outputs.project }}
-      project_number: ${{ needs.get_environment_values.output.project_number }}
+      project_number: ${{ needs.get_environment_values.outputs.project_number }}
       timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
     secrets: inherit
     permissions:
@@ -38,6 +38,6 @@ jobs:
       - deploy
     with:
       project: ${{ needs.get_environment_values.outputs.project }}
-      project_number: ${{ needs.get_environment_values.output.project_number }}
+      project_number: ${{ needs.get_environment_values.outputs.project_number }}
     permissions:
       id-token: write
