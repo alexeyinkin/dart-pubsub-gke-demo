@@ -19,6 +19,7 @@ jobs:
   test:
     uses: ./.github/workflows/test.yaml
     needs:
+      - generate_deployment_values
       - deploy
     with:
       project: ${{ needs.generate_deployment_values.outputs.project }}
@@ -29,6 +30,7 @@ jobs:
   delete:
     uses: ./.github/workflows/delete.yaml
     needs:
+      - generate_deployment_values
       - test
     if: always()
     with:

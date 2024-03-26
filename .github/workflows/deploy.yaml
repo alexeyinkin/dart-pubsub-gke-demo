@@ -74,21 +74,21 @@ jobs:
         run: |
           echo "value=$PROJECT_NUMBER" >> $GITHUB_OUTPUT
 
+      - name: 'Set the billing account'
+        run: |
+          gcloud billing \
+            projects link $PROJECT \
+            --billing-account=${{ secrets.BILLING_ACCOUNT }}
+
       - name: 'Enable the services'
         run: |
-          gcloud services enable cloudbilling.googleapis.com --project=$PROJECT
+          #gcloud services enable cloudbilling.googleapis.com --project=$PROJECT
           gcloud services enable artifactregistry.googleapis.com --project=$PROJECT
           gcloud services enable cloudbuild.googleapis.com --project=$PROJECT
           gcloud services enable cloudresourcemanager.googleapis.com --project=$PROJECT
           gcloud services enable container.googleapis.com --project=$PROJECT
           gcloud services enable iam.googleapis.com --project=$PROJECT
           gcloud services enable pubsub.googleapis.com --project=$PROJECT
-
-      - name: 'Set the billing account'
-        run: |          
-          gcloud billing \
-            projects link $PROJECT \
-            --billing-account=${{ secrets.BILLING_ACCOUNT }}
 
       - name: 'Check if the state bucket for Terraform exists'
         id: probe_bucket
