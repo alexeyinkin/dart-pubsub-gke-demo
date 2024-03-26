@@ -13,8 +13,6 @@ on:
 
     outputs:
       project_number:
-        value: ${{ jobs._.steps.export_project_number.outputs.value }}
-      project_number_indirect:
         value: ${{ jobs._.outputs.project_number }}
 
     secrets:
