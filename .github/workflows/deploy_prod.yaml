@@ -5,6 +5,7 @@ on:
 
 jobs:
   env_test:
+    runs-on: ubuntu-latest
     environment: prod
     steps:
       - run: echo ${{ vars.PROJECT }}
