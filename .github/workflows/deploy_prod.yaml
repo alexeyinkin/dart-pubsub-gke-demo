@@ -11,7 +11,8 @@ jobs:
       project: ${{ vars.PROJECT }}
       project_number: ${{ vars.PROJECT_NUMBER }}
     steps:
-      #- run: echo ${{ vars.PROJECT }}
+      - run: echo ${{ vars.PROJECT }}
+      - run: echo ${{ vars.PROJECT_NUMBER }}
       - run: true
 
   generate_deployment_values:
