@@ -1,8 +1,6 @@
 on:
   - workflow_dispatch
 
-#environment: prod
-
 jobs:
   get_environment_values:
     runs-on: ubuntu-latest
@@ -11,8 +9,6 @@ jobs:
       project: ${{ vars.PROJECT }}
       project_number: ${{ vars.PROJECT_NUMBER }}
     steps:
-      - run: echo ${{ vars.PROJECT }}
-      - run: echo ${{ vars.PROJECT_NUMBER }}
       - run: true
 
   generate_deployment_values:
@@ -38,7 +34,6 @@ jobs:
       - deploy
     with:
       project: ${{ needs.get_environment_values.outputs.project }}
-      project_number: ${{ needs.deploy.outputs.project_number }}
-      #project_number: ${{ needs.get_environment_values.outputs.project_number }}
+      project_number: ${{ needs.get_environment_values.outputs.project_number }}
     permissions:
       id-token: write
