@@ -165,7 +165,6 @@ jobs:
           retry_wait_seconds: 60
           command: |
             gcloud projects list
-            #gcloud artifacts repositories list
 
       - name: 'Check if the Artifact Registry repository exists'
         id: probe_repository
