@@ -32,7 +32,7 @@ jobs:
     uses: ./.github/workflows/test.yaml
     needs:
       - deploy
-      - get_environment_values
+      - generate_deployment_values
       - maybe_create_project
     with:
       project: ${{ needs.generate_deployment_values.outputs.project }}
