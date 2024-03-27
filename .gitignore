@@ -1,5 +1,8 @@
 /.idea
 /capitalizer/pubspec.lock
+/infrastructure/terraform/.terraform
+/infrastructure/terraform/.terraform.lock.hcl
+/infrastructure/terraform/backend.tf
 /keys/*
 
 !/keys/.gitkeep
