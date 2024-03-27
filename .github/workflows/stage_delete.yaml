@@ -2,7 +2,53 @@ on:
   - workflow_dispatch
 
 jobs:
-  stage_delete:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo
+  generate_deployment_values:
+    uses: ./.github/workflows/generate_deployment_values.yaml
+
+  maybe_create_project:
+    uses: ./.github/workflows/maybe_create_project.yaml
+    needs:
+      - generate_deployment_values
+    with:
+      project: ${{ needs.generate_deployment_values.outputs.project }}
+    secrets: inherit
+    permissions:
+      id-token: write
+
+  deploy:
+    uses: ./.github/workflows/deploy.yaml
+    needs:
+      - generate_deployment_values
+      - maybe_create_project
+    with:
+      project: ${{ needs.generate_deployment_values.outputs.project }}
+      project_number: ${{ needs.maybe_create_project.outputs.project_number }}
+      timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
+    secrets: inherit
+    permissions:
+      id-token: write
+
+  test:
+    uses: ./.github/workflows/test.yaml
+    needs:
+      - deploy
+      - generate_deployment_values
+      - maybe_create_project
+    with:
+      project: ${{ needs.generate_deployment_values.outputs.project }}
+      project_number: ${{ needs.maybe_create_project.outputs.project_number }}
+    permissions:
+      id-token: write
+
+  delete:
+    uses: ./.github/workflows/delete.yaml
+    needs:
+      - generate_deployment_values
+      - maybe_create_project
+      - test
+    if: always()
+    with:
+      project: ${{ needs.generate_deployment_values.outputs.project }}
+      project_number: ${{ needs.maybe_create_project.outputs.project_number }}
+    permissions:
+      id-token: write

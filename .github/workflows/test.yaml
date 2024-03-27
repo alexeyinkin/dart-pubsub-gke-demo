@@ -1,21 +1,54 @@
 on:
-  - workflow_dispatch
+  workflow_call:
+    inputs:
+      project:
+        required: true
+        type: string
+      project_number:
+        required: false
+        type: string
 
 jobs:
-  test:
+  _:
+    runs-on: ubuntu-latest
+
     permissions:
       id-token: write
 
-    runs-on: ubuntu-latest
     steps:
 
       - uses: actions/checkout@v4
 
+      - name: 'Export the environment variables'
+        run: |
+          echo "DART_VERSION=${{ vars.DART_VERSION }}" >> $GITHUB_ENV
+          echo "PROJECT=${{ inputs.project }}" >> $GITHUB_ENV
+          echo "PROJECT_NUMBER=${{ inputs.project_number }}" >> $GITHUB_ENV
+
       - uses: 'google-github-actions/auth@v2'
         with:
-          workload_identity_provider: 'projects/${{ secrets.MASTER_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
-          service_account: 'project-creator@${{ secrets.MASTER_PROJECT_NAME }}.iam.gserviceaccount.com'
+          workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: 'deploy@${{ env.PROJECT }}.iam.gserviceaccount.com'
 
       - uses: 'google-github-actions/setup-gcloud@v2'
-      - run: gcloud info
-      - run: gcloud projects list > /dev/null
+
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ vars.DART_VERSION }}
+
+      - name: 'Test'
+        run: |
+          cd capitalizer
+          dart pub get
+          dart test
+
+      - uses: 'google-github-actions/get-gke-credentials@v2'
+        with:
+          cluster_name: 'my-cluster'
+          location: ${{ vars.ZONE }}
+          project_id: ${{ env.PROJECT }}
+
+      - name: 'Container output'
+        run: |
+          kubectl get pods
+          kubectl logs $(kubectl get pods -o name | grep dart-pubsub-gke-demo | head -n 1)

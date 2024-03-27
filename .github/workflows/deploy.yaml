@@ -1,8 +1,209 @@
 on:
-  - workflow_dispatch
+  workflow_call:
+    inputs:
+      project:
+        required: true
+        type: string
+      project_number:
+        required: true
+        type: string
+      timestamp:
+        required: true
+        type: string
+
+    secrets:
+      BILLING_ACCOUNT:
+        required: true
+      MASTER_PROJECT:
+        required: true
+      MASTER_PROJECT_NUMBER:
+        required: true
+
+env:
+  TF_LOG: DEBUG
 
 jobs:
-  deploy:
+  _:
     runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+
     steps:
-      - run: echo
+      - uses: actions/checkout@v4
+
+      - name: 'Export the environment variables'
+        run: |
+          echo "DART_VERSION=${{ vars.DART_VERSION }}" >> $GITHUB_ENV
+          echo "PROJECT=${{ inputs.project }}" >> $GITHUB_ENV
+          echo "PROJECT_NUMBER=${{ inputs.project_number }}" >> $GITHUB_ENV
+          echo "REGION=${{ vars.REGION }}" >> $GITHUB_ENV
+          echo "REPO=${{ github.repository }}" >> $GITHUB_ENV
+          echo "STATE_BUCKET=gs://${{ inputs.project }}-tf-state" >> $GITHUB_ENV
+          echo "TIMESTAMP=${{ inputs.timestamp }}" >> $GITHUB_ENV
+          echo "ZONE=${{ vars.ZONE }}" >> $GITHUB_ENV
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: 'projects/${{ secrets.MASTER_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: 'project-creator@${{ secrets.MASTER_PROJECT }}.iam.gserviceaccount.com'
+
+      - name: 'Set the billing account'
+        run: |
+          gcloud billing \
+            projects link $PROJECT \
+            --billing-account=${{ secrets.BILLING_ACCOUNT }}
+
+      - name: 'Enable the services'
+        run: |
+          gcloud services enable artifactregistry.googleapis.com --project=$PROJECT
+          gcloud services enable cloudbuild.googleapis.com --project=$PROJECT
+          gcloud services enable cloudresourcemanager.googleapis.com --project=$PROJECT
+          gcloud services enable container.googleapis.com --project=$PROJECT
+          gcloud services enable iam.googleapis.com --project=$PROJECT
+          gcloud services enable pubsub.googleapis.com --project=$PROJECT
+
+      - name: 'Check if the state bucket for Terraform exists'
+        id: probe_bucket
+        run: |
+          set +e
+          gcloud storage buckets describe $STATE_BUCKET
+          [ $? -eq 0 ] && echo "exists=true" >> $GITHUB_OUTPUT || echo "exists=false" >> $GITHUB_OUTPUT
+
+      - name: 'Create the state bucket for Terraform'
+        if: steps.probe_bucket.outputs.exists == 'false'
+        run: |
+          gcloud storage \
+            buckets create $STATE_BUCKET \
+            --location=$REGION \
+            --uniform-bucket-level-access \
+            --project=$PROJECT
+
+      - name: 'Check if the service account for Terraform exists'
+        id: probe_deploy_service_account
+        run: |
+          set +e
+          gcloud iam service-accounts list --project=$PROJECT | grep deploy@$PROJECT.iam.gserviceaccount.com
+          [ $? -eq 0 ] && echo "exists=true" >> $GITHUB_OUTPUT || echo "exists=false" >> $GITHUB_OUTPUT
+
+      - name: 'Create the service account for Terraform'
+        if: steps.probe_deploy_service_account.outputs.exists == 'false'
+        run: |
+          gcloud iam \
+            service-accounts create "deploy" \
+            --project=$PROJECT
+          gcloud projects \
+            add-iam-policy-binding $PROJECT \
+            --member="serviceAccount:deploy@$PROJECT.iam.gserviceaccount.com" \
+            --role="roles/owner" \
+            --project=$PROJECT
+
+      - name: 'Read the deployers list'
+        run: |
+          input_file="infrastructure/deployers.txt"
+          output=""
+          while IFS= read -r line; do
+            trimmed=$(echo "$line" | xargs)
+            if [ -z "$output" ]; then
+              output="'$trimmed'"
+            else
+              output="$output,'$trimmed'"
+            fi
+          done < "$input_file"
+          echo "$output"
+          echo "GITHUB_USERS_STR=$output" >> $GITHUB_ENV
+
+      - name: 'Configure Workload Identity Federation for deployment'
+        run: |
+          gcloud iam \
+            workload-identity-pools create "github" \
+            --location="global" \
+            --project=$PROJECT || true
+          MAPPING=(
+            'google.subject=assertion.sub'
+            'attribute.actor=assertion.actor'
+            'attribute.repository=assertion.repository'
+          );gcloud iam \
+            workload-identity-pools providers create-oidc "github" \
+            --attribute-mapping="$(echo $(IFS=,; echo "${MAPPING[*]}"))" \
+            --issuer-uri="https://token.actions.githubusercontent.com" \
+            --location="global" \
+            --workload-identity-pool="github" \
+            --project=$PROJECT || true
+          envsubst < infrastructure/deploy-policy.json | \
+            gcloud iam \
+              service-accounts set-iam-policy \
+              deploy@$PROJECT.iam.gserviceaccount.com \
+              /dev/stdin
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: 'deploy@${{ env.PROJECT }}.iam.gserviceaccount.com'
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ vars.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: 'Allocate a version'
+        run: |
+          export APP_VERSION=$(grep '^version:' capitalizer/pubspec.yaml | awk '{print $2}');
+          export COMMIT_HASH=$(git rev-parse HEAD)
+          export VERSION="v$APP_VERSION-$TIMESTAMP-$COMMIT_HASH"
+          echo "Version: $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: 'Wait until IAM policy takes effect'
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e
+        with:
+          timeout_minutes: 1
+          max_attempts: 5
+          retry_wait_seconds: 60
+          command: |
+            gcloud projects list
+
+      - name: 'Check if the Artifact Registry repository exists'
+        id: probe_repository
+        run: |
+          set +e
+          gcloud artifacts repositories list --location=$REGION --project=$PROJECT | grep my-repository
+          [ $? -eq 0 ] && echo "exists=true" >> $GITHUB_OUTPUT || echo "exists=false" >> $GITHUB_OUTPUT
+
+      - name: 'Create the Artifact Registry repository'
+        if: steps.probe_repository.outputs.exists == 'false'
+        run: |
+          gcloud artifacts \
+            repositories create my-repository \
+            --repository-format=DOCKER \
+            --location=$REGION \
+            --project=$PROJECT
+
+      - name: 'Submit a build'
+        run: |
+          SUBSTITUTIONS=(
+            "_VERSION=$VERSION"
+            "_DART_VERSION=$DART_VERSION"
+            "_REGION=$REGION"
+            "_REPOSITORY=my-repository"
+          ); gcloud builds \
+            submit \
+            --project=$PROJECT \
+            --substitutions="$(echo $(IFS=,; echo "${SUBSTITUTIONS[*]}"))" \
+            --config=capitalizer/cloudbuild.yaml \
+            capitalizer
+
+      - name: 'Terraform'
+        run: |
+          cd infrastructure/terraform
+          envsubst < backend.tf.template > backend.tf
+          terraform init
+          terraform apply \
+            -auto-approve \
+            -var="PROJECT=$PROJECT" \
+            -var="REGION=$REGION" \
+            -var="ZONE=$ZONE" \
+            -var="VERSION=$VERSION"

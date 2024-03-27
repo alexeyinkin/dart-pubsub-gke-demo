@@ -1,0 +1,14 @@
+{
+  "bindings": [
+    {
+      "members": [
+        "principalSet://iam.googleapis.com/projects/${MASTER_PROJECT_NUMBER}/locations/global/workloadIdentityPools/github/attribute.repository/${REPO}"
+      ],
+      "role": "roles/iam.workloadIdentityUser",
+      "condition": {
+        "title": "GitHub users whitelist",
+        "expression": "request.auth.claims.attribute.actor in [${GITHUB_USERS_STR}]"
+      }
+    }
+  ]
+}

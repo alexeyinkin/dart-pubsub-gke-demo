@@ -1,11 +1,11 @@
-// Run: GOOGLE_APPLICATION_CREDENTIALS='../keys/pubsub.json' dart test
+// Run: GOOGLE_APPLICATION_CREDENTIALS='../keys/capitalizer.json' dart test
 
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:gcloud/pubsub.dart';
-import 'package:googleapis_auth/auth_io.dart';
 import 'package:test/test.dart';
+import 'package:wif_workaround/wif_workaround.dart' as w;
 
 const _topicName = 'input';
 const _subscriptionName = 'output-sub';
@@ -19,8 +19,10 @@ void main() {
       throw Exception('Set PROJECT environment variable.');
     }
 
+    print(File(Platform.environment['GOOGLE_APPLICATION_CREDENTIALS']!)
+        .readAsStringSync());
     final pubsub = PubSub(
-      await clientViaApplicationDefaultCredentials(scopes: PubSub.SCOPES),
+      await w.clientViaApplicationDefaultCredentials(scopes: PubSub.SCOPES),
       projectId,
     );
 

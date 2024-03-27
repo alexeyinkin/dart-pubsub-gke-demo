@@ -1,8 +1,49 @@
 on:
-  - workflow_dispatch
+  workflow_call:
+    inputs:
+      project:
+        required: true
+        type: string
+      project_number:
+        required: false
+        type: string
 
 jobs:
-  delete:
+  _:
     runs-on: ubuntu-latest
     steps:
-      - run: echo
+      - uses: actions/checkout@v4
+
+      - name: 'Export the environment variables'
+        run: |
+          echo "PROJECT=${{ inputs.project }}" >> $GITHUB_ENV
+          echo "PROJECT_NUMBER=${{ inputs.project_number }}" >> $GITHUB_ENV
+          echo "REGION=${{ vars.REGION }}" >> $GITHUB_ENV
+          echo "ZONE=${{ vars.ZONE }}" >> $GITHUB_ENV
+
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: 'deploy@${{ env.PROJECT }}.iam.gserviceaccount.com'
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ vars.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: 'Terraform'
+        run: |
+          cd infrastructure/terraform
+          envsubst < backend.tf.template > backend.tf
+          terraform init
+          terraform destroy \
+            -auto-approve \
+            -var="PROJECT=$PROJECT" \
+            -var="REGION=$REGION" \
+            -var="ZONE=$ZONE" \
+            -var='VERSION=""'
+
+      - name: 'Delete the project'
+        if: always()
+        run: |
+          gcloud projects delete $PROJECT --quiet
