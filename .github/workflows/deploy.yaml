@@ -5,20 +5,16 @@ on:
         required: true
         type: string
       project_number:
-        required: false
+        required: true
         type: string
       timestamp:
         required: true
         type: string
 
-    outputs:
-      project_number:
-        value: ${{ jobs._.outputs.project_number }}
-
     secrets:
       BILLING_ACCOUNT:
         required: true
-      MASTER_PROJECT_NAME:
+      MASTER_PROJECT:
         required: true
       MASTER_PROJECT_NUMBER:
         required: true
@@ -32,9 +28,6 @@ jobs:
 
     permissions:
       id-token: write
-
-    outputs:
-      project_number: ${{ steps.export_project_number.outputs.value }}
 
     steps:
       - uses: actions/checkout@v4
@@ -53,29 +46,7 @@ jobs:
       - uses: 'google-github-actions/auth@v2'
         with:
           workload_identity_provider: 'projects/${{ secrets.MASTER_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
-          service_account: 'project-creator@${{ secrets.MASTER_PROJECT_NAME }}.iam.gserviceaccount.com'
-
-      - name: 'Create the Google Cloud Project if it does not exist'
-        id: create_project
-        run: |
-          set +e
-          gcloud projects \
-            create $PROJECT \
-            --name=$PROJECT \
-            --organization=${{ secrets.ORGANIZATION }}
-          true
-
-      - name: 'Get the project number'
-        if: env.PROJECT_NUMBER == ''
-        run: |
-          export PROJECT_NUMBER=$(gcloud projects describe $PROJECT --format='value(projectNumber)')
-          echo "Project Number: $PROJECT_NUMBER"
-          echo "PROJECT_NUMBER=$PROJECT_NUMBER" >> $GITHUB_ENV
-
-      - name: 'Export the project number'
-        id: export_project_number
-        run: |
-          echo "value=$PROJECT_NUMBER" >> $GITHUB_OUTPUT
+          service_account: 'project-creator@${{ secrets.MASTER_PROJECT }}.iam.gserviceaccount.com'
 
       - name: 'Set the billing account'
         run: |
@@ -85,7 +56,6 @@ jobs:
 
       - name: 'Enable the services'
         run: |
-          #gcloud services enable cloudbilling.googleapis.com --project=$PROJECT
           gcloud services enable artifactregistry.googleapis.com --project=$PROJECT
           gcloud services enable cloudbuild.googleapis.com --project=$PROJECT
           gcloud services enable cloudresourcemanager.googleapis.com --project=$PROJECT

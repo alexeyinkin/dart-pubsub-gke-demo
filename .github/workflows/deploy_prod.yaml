@@ -14,14 +14,26 @@ jobs:
   generate_deployment_values:
     uses: ./.github/workflows/generate_deployment_values.yaml
 
-  deploy:
-    uses: ./.github/workflows/deploy.yaml
+  maybe_create_project:
+    uses: ./.github/workflows/maybe_create_project.yaml
     needs:
       - get_environment_values
-      - generate_deployment_values
     with:
       project: ${{ needs.get_environment_values.outputs.project }}
       project_number: ${{ needs.get_environment_values.outputs.project_number }}
+    secrets: inherit
+    permissions:
+      id-token: write
+
+  deploy:
+    uses: ./.github/workflows/deploy.yaml
+    needs:
+      - generate_deployment_values
+      - get_environment_values
+      - maybe_create_project
+    with:
+      project: ${{ needs.get_environment_values.outputs.project }}
+      project_number: ${{ needs.maybe_create_project.outputs.project_number }}
       timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
     secrets: inherit
     permissions:
@@ -30,10 +42,11 @@ jobs:
   test:
     uses: ./.github/workflows/test.yaml
     needs:
-      - get_environment_values
       - deploy
+      - get_environment_values
+      - maybe_create_project
     with:
       project: ${{ needs.get_environment_values.outputs.project }}
-      project_number: ${{ needs.get_environment_values.outputs.project_number }}
+      project_number: ${{ needs.maybe_create_project.outputs.project_number }}
     permissions:
       id-token: write
