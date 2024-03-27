@@ -2,8 +2,10 @@ on:
   workflow_call:
     outputs:
       project:
+        description: 'A temporary project ID'
         value: ${{ jobs._.outputs.project }}
       timestamp:
+        description: 'Timestamp in the format of YYYYMMDD-HHMMSS in UTC'
         value: ${{ jobs._.outputs.timestamp }}
 
 jobs:

@@ -7,7 +7,6 @@ jobs:
     environment: prod
     outputs:
       project: ${{ vars.PROJECT }}
-      project_number: ${{ vars.PROJECT_NUMBER }}
     steps:
       - run: true
 
@@ -20,7 +19,6 @@ jobs:
       - get_environment_values
     with:
       project: ${{ needs.get_environment_values.outputs.project }}
-      project_number: ${{ needs.get_environment_values.outputs.project_number }}
     secrets: inherit
     permissions:
       id-token: write
