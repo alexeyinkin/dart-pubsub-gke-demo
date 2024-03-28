@@ -4,6 +4,9 @@ on:
       project:
         required: true
         type: string
+      project_number:
+        required: true
+        type: string
 
     secrets:
       BILLING_ACCOUNT:
@@ -26,6 +29,7 @@ jobs:
       - name: 'Export the environment variables'
         run: |
           echo "PROJECT=${{ inputs.project }}" >> $GITHUB_ENV
+          echo "PROJECT_NUMBER=${{ inputs.project_number }}" >> $GITHUB_ENV
           echo "REPO=${{ github.repository }}" >> $GITHUB_ENV
 
       - uses: 'google-github-actions/auth@v2'

@@ -22,6 +22,7 @@ jobs:
       - maybe_create_project
     with:
       project: ${{ needs.generate_deployment_values.outputs.project }}
+      project_number: ${{ needs.maybe_create_project.outputs.project_number }}
     secrets: inherit
     permissions:
       id-token: write
@@ -61,6 +62,6 @@ jobs:
     if: always()
     with:
       project: ${{ needs.generate_deployment_values.outputs.project }}
-      project_number: ${{ needs.maybe_create_project.outputs.project_number }}
+    secrets: inherit
     permissions:
       id-token: write
