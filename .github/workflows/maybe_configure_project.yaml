@@ -46,21 +46,17 @@ jobs:
         run: |
           set +e
           gcloud projects describe $PROJECT
-          if [ $? -ne 0 ]; then
-            echo "Can't access the project. Assuming it's configured and the access for project-creator is revoked."
-            exit
-          fi
-          #[ $? -eq 0 ] && echo "ok=true" >> $GITHUB_OUTPUT || echo "ok=false" >> $GITHUB_OUTPUT
+          [ $? -eq 0 ] && echo "ok=true" >> $GITHUB_OUTPUT || echo "ok=false" >> $GITHUB_OUTPUT
 
       - name: 'Set the billing account'
-        #if: steps.access.outputs.ok == 'true'
+        if: steps.access.outputs.ok == 'true'
         run: |
           gcloud billing \
             projects link $PROJECT \
             --billing-account=${{ secrets.BILLING_ACCOUNT }}
 
       - name: 'Enable the services'
-        #if: steps.access.outputs.ok == 'true'
+        if: steps.access.outputs.ok == 'true'
         run: |
           gcloud services enable artifactregistry.googleapis.com --project=$PROJECT
           gcloud services enable cloudbuild.googleapis.com --project=$PROJECT
@@ -70,7 +66,7 @@ jobs:
           gcloud services enable pubsub.googleapis.com --project=$PROJECT
 
       - name: 'Check if the service account for Terraform exists'
-        #if: steps.access.outputs.ok == 'true'
+        if: steps.access.outputs.ok == 'true'
         id: probe_deploy_service_account
         run: |
           set +e
@@ -90,7 +86,7 @@ jobs:
             --project=$PROJECT
 
       - name: 'Read the deployers list'
-        #if: steps.access.outputs.ok == 'true'
+        if: steps.access.outputs.ok == 'true'
         run: |
           input_file="infrastructure/deployers.txt"
           output=""
@@ -106,6 +102,7 @@ jobs:
           echo "GITHUB_USERS_STR=$output" >> $GITHUB_ENV
 
       - name: 'Configure Workload Identity Federation for deployment'
+        if: steps.access.outputs.ok == 'true'
         run: |
           gcloud iam \
             workload-identity-pools create "github" \
