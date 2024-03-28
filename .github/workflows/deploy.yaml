@@ -39,6 +39,15 @@ jobs:
           workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: 'deploy@${{ env.PROJECT }}.iam.gserviceaccount.com'
 
+      - name: 'Wait until IAM policy takes effect'
+        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e
+        with:
+          timeout_minutes: 1
+          max_attempts: 5
+          retry_wait_seconds: 60
+          command: |
+            gcloud projects list
+
       - name: 'Check if the state bucket for Terraform exists'
         id: probe_bucket
         run: |
@@ -70,15 +79,6 @@ jobs:
           export VERSION="v$APP_VERSION-$TIMESTAMP-$COMMIT_HASH"
           echo "Version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: 'Wait until IAM policy takes effect'
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e
-        with:
-          timeout_minutes: 1
-          max_attempts: 5
-          retry_wait_seconds: 60
-          command: |
-            gcloud projects list
 
       - name: 'Check if the Artifact Registry repository exists'
         id: probe_repository
