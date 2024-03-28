@@ -45,23 +45,28 @@ jobs:
 
       - uses: 'google-github-actions/auth@v2'
         with:
-          workload_identity_provider: 'projects/${{ secrets.MASTER_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
-          service_account: 'project-creator@${{ secrets.MASTER_PROJECT }}.iam.gserviceaccount.com'
+          workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: 'deploy@${{ env.PROJECT }}.iam.gserviceaccount.com'
 
-      - name: 'Set the billing account'
-        run: |
-          gcloud billing \
-            projects link $PROJECT \
-            --billing-account=${{ secrets.BILLING_ACCOUNT }}
-
-      - name: 'Enable the services'
-        run: |
-          gcloud services enable artifactregistry.googleapis.com --project=$PROJECT
-          gcloud services enable cloudbuild.googleapis.com --project=$PROJECT
-          gcloud services enable cloudresourcemanager.googleapis.com --project=$PROJECT
-          gcloud services enable container.googleapis.com --project=$PROJECT
-          gcloud services enable iam.googleapis.com --project=$PROJECT
-          gcloud services enable pubsub.googleapis.com --project=$PROJECT
+#      - uses: 'google-github-actions/auth@v2'
+#        with:
+#          workload_identity_provider: 'projects/${{ secrets.MASTER_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
+#          service_account: 'project-creator@${{ secrets.MASTER_PROJECT }}.iam.gserviceaccount.com'
+#
+#      - name: 'Set the billing account'
+#        run: |
+#          gcloud billing \
+#            projects link $PROJECT \
+#            --billing-account=${{ secrets.BILLING_ACCOUNT }}
+#
+#      - name: 'Enable the services'
+#        run: |
+#          gcloud services enable artifactregistry.googleapis.com --project=$PROJECT
+#          gcloud services enable cloudbuild.googleapis.com --project=$PROJECT
+#          gcloud services enable cloudresourcemanager.googleapis.com --project=$PROJECT
+#          gcloud services enable container.googleapis.com --project=$PROJECT
+#          gcloud services enable iam.googleapis.com --project=$PROJECT
+#          gcloud services enable pubsub.googleapis.com --project=$PROJECT
 
       - name: 'Check if the state bucket for Terraform exists'
         id: probe_bucket
@@ -79,67 +84,67 @@ jobs:
             --uniform-bucket-level-access \
             --project=$PROJECT
 
-      - name: 'Check if the service account for Terraform exists'
-        id: probe_deploy_service_account
-        run: |
-          set +e
-          gcloud iam service-accounts list --project=$PROJECT | grep deploy@$PROJECT.iam.gserviceaccount.com
-          [ $? -eq 0 ] && echo "exists=true" >> $GITHUB_OUTPUT || echo "exists=false" >> $GITHUB_OUTPUT
+#      - name: 'Check if the service account for Terraform exists'
+#        id: probe_deploy_service_account
+#        run: |
+#          set +e
+#          gcloud iam service-accounts list --project=$PROJECT | grep deploy@$PROJECT.iam.gserviceaccount.com
+#          [ $? -eq 0 ] && echo "exists=true" >> $GITHUB_OUTPUT || echo "exists=false" >> $GITHUB_OUTPUT
+#
+#      - name: 'Create the service account for Terraform'
+#        if: steps.probe_deploy_service_account.outputs.exists == 'false'
+#        run: |
+#          gcloud iam \
+#            service-accounts create "deploy" \
+#            --project=$PROJECT
+#          gcloud projects \
+#            add-iam-policy-binding $PROJECT \
+#            --member="serviceAccount:deploy@$PROJECT.iam.gserviceaccount.com" \
+#            --role="roles/owner" \
+#            --project=$PROJECT
+#
+#      - name: 'Read the deployers list'
+#        run: |
+#          input_file="infrastructure/deployers.txt"
+#          output=""
+#          while IFS= read -r line; do
+#            trimmed=$(echo "$line" | xargs)
+#            if [ -z "$output" ]; then
+#              output="'$trimmed'"
+#            else
+#              output="$output,'$trimmed'"
+#            fi
+#          done < "$input_file"
+#          echo "$output"
+#          echo "GITHUB_USERS_STR=$output" >> $GITHUB_ENV
+#
+#      - name: 'Configure Workload Identity Federation for deployment'
+#        run: |
+#          gcloud iam \
+#            workload-identity-pools create "github" \
+#            --location="global" \
+#            --project=$PROJECT || true
+#          MAPPING=(
+#            'google.subject=assertion.sub'
+#            'attribute.actor=assertion.actor'
+#            'attribute.repository=assertion.repository'
+#          );gcloud iam \
+#            workload-identity-pools providers create-oidc "github" \
+#            --attribute-mapping="$(echo $(IFS=,; echo "${MAPPING[*]}"))" \
+#            --issuer-uri="https://token.actions.githubusercontent.com" \
+#            --location="global" \
+#            --workload-identity-pool="github" \
+#            --project=$PROJECT || true
+#          envsubst < infrastructure/deploy-policy.json | \
+#            gcloud iam \
+#              service-accounts set-iam-policy \
+#              deploy@$PROJECT.iam.gserviceaccount.com \
+#              /dev/stdin
 
-      - name: 'Create the service account for Terraform'
-        if: steps.probe_deploy_service_account.outputs.exists == 'false'
-        run: |
-          gcloud iam \
-            service-accounts create "deploy" \
-            --project=$PROJECT
-          gcloud projects \
-            add-iam-policy-binding $PROJECT \
-            --member="serviceAccount:deploy@$PROJECT.iam.gserviceaccount.com" \
-            --role="roles/owner" \
-            --project=$PROJECT
-
-      - name: 'Read the deployers list'
-        run: |
-          input_file="infrastructure/deployers.txt"
-          output=""
-          while IFS= read -r line; do
-            trimmed=$(echo "$line" | xargs)
-            if [ -z "$output" ]; then
-              output="'$trimmed'"
-            else
-              output="$output,'$trimmed'"
-            fi
-          done < "$input_file"
-          echo "$output"
-          echo "GITHUB_USERS_STR=$output" >> $GITHUB_ENV
-
-      - name: 'Configure Workload Identity Federation for deployment'
-        run: |
-          gcloud iam \
-            workload-identity-pools create "github" \
-            --location="global" \
-            --project=$PROJECT || true
-          MAPPING=(
-            'google.subject=assertion.sub'
-            'attribute.actor=assertion.actor'
-            'attribute.repository=assertion.repository'
-          );gcloud iam \
-            workload-identity-pools providers create-oidc "github" \
-            --attribute-mapping="$(echo $(IFS=,; echo "${MAPPING[*]}"))" \
-            --issuer-uri="https://token.actions.githubusercontent.com" \
-            --location="global" \
-            --workload-identity-pool="github" \
-            --project=$PROJECT || true
-          envsubst < infrastructure/deploy-policy.json | \
-            gcloud iam \
-              service-accounts set-iam-policy \
-              deploy@$PROJECT.iam.gserviceaccount.com \
-              /dev/stdin
-
-      - uses: 'google-github-actions/auth@v2'
-        with:
-          workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
-          service_account: 'deploy@${{ env.PROJECT }}.iam.gserviceaccount.com'
+#      - uses: 'google-github-actions/auth@v2'
+#        with:
+#          workload_identity_provider: 'projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/github'
+#          service_account: 'deploy@${{ env.PROJECT }}.iam.gserviceaccount.com'
 
       - uses: hashicorp/setup-terraform@v3
         with:
