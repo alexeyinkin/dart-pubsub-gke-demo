@@ -46,7 +46,7 @@ jobs:
         run: |
           set +e
           gcloud projects describe $PROJECT
-          if [ $? -eq 0 ]; then
+          if [ $? -ne 0 ]; then
             echo "Can't access the project. Assuming it's configured and the access for project-creator is revoked."
             exit
           fi
