@@ -4,9 +4,6 @@ on:
       project:
         required: true
         type: string
-#      project_number:
-#        required: true
-#        type: string
 
     secrets:
       BILLING_ACCOUNT:
@@ -28,13 +25,8 @@ jobs:
 
       - name: 'Export the environment variables'
         run: |
-          #echo "DART_VERSION=${{ vars.DART_VERSION }}" >> $GITHUB_ENV
           echo "PROJECT=${{ inputs.project }}" >> $GITHUB_ENV
-          #echo "PROJECT_NUMBER=${{ inputs.project_number }}" >> $GITHUB_ENV
-          #echo "REGION=${{ vars.REGION }}" >> $GITHUB_ENV
           echo "REPO=${{ github.repository }}" >> $GITHUB_ENV
-          #echo "STATE_BUCKET=gs://${{ inputs.project }}-tf-state" >> $GITHUB_ENV
-          #echo "ZONE=${{ vars.ZONE }}" >> $GITHUB_ENV
 
       - uses: 'google-github-actions/auth@v2'
         with:
