@@ -15,10 +15,22 @@ jobs:
     permissions:
       id-token: write
 
+  maybe_configure_project:
+    uses: ./.github/workflows/maybe_configure_project.yaml
+    needs:
+      - generate_deployment_values
+      - maybe_create_project
+    with:
+      project: ${{ needs.generate_deployment_values.outputs.project }}
+    secrets: inherit
+    permissions:
+      id-token: write
+
   deploy:
     uses: ./.github/workflows/deploy.yaml
     needs:
       - generate_deployment_values
+      - maybe_configure_project
       - maybe_create_project
     with:
       project: ${{ needs.generate_deployment_values.outputs.project }}
