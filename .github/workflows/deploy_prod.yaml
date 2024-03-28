@@ -47,7 +47,7 @@ jobs:
       project: ${{ needs.get_environment_values.outputs.project }}
       project_number: ${{ needs.maybe_create_project.outputs.project_number }}
       timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
-    secrets: inherit
+#    secrets: inherit
     permissions:
       id-token: write
 
