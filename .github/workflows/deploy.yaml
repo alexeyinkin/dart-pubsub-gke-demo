@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
+      contents: read
       id-token: write
 
     steps:
@@ -99,10 +100,10 @@ jobs:
       - name: 'Submit a build'
         run: |
           SUBSTITUTIONS=(
-            "_VERSION=$VERSION"
             "_DART_VERSION=$DART_VERSION"
             "_REGION=$REGION"
             "_REPOSITORY=my-repository"
+            "_VERSION=$VERSION"
           ); gcloud builds \
             submit \
             --project=$PROJECT \

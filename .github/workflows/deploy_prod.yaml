@@ -35,6 +35,7 @@ jobs:
       project_number: ${{ needs.maybe_create_project.outputs.project_number }}
     secrets: inherit
     permissions:
+      contents: read
       id-token: write
 
   deploy:
@@ -49,6 +50,7 @@ jobs:
       project_number: ${{ needs.maybe_create_project.outputs.project_number }}
       timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
     permissions:
+      contents: read
       id-token: write
 
   test:
@@ -61,4 +63,5 @@ jobs:
       project: ${{ needs.get_environment_values.outputs.project }}
       project_number: ${{ needs.maybe_create_project.outputs.project_number }}
     permissions:
+      contents: read
       id-token: write

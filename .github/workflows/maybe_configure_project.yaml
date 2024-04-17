@@ -21,6 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
+      contents: read
       id-token: write
 
     steps:
@@ -115,6 +116,7 @@ jobs:
             --location="global" \
             --workload-identity-pool="github" \
             --project=$PROJECT || true
+          #TODO: Condition ^^^
           envsubst < infrastructure/deploy-policy.json | \
             gcloud iam \
               service-accounts set-iam-policy \

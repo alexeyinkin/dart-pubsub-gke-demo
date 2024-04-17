@@ -15,17 +15,31 @@ jobs:
     permissions:
       id-token: write
 
-  deploy:
-    uses: ./.github/workflows/deploy.yaml
+  maybe_configure_project:
+    uses: ./.github/workflows/maybe_configure_project.yaml
     needs:
       - generate_deployment_values
       - maybe_create_project
     with:
       project: ${{ needs.generate_deployment_values.outputs.project }}
       project_number: ${{ needs.maybe_create_project.outputs.project_number }}
-      timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
     secrets: inherit
     permissions:
+      contents: read
+      id-token: write
+
+  deploy:
+    uses: ./.github/workflows/deploy.yaml
+    needs:
+      - generate_deployment_values
+      - maybe_configure_project
+      - maybe_create_project
+    with:
+      project: ${{ needs.generate_deployment_values.outputs.project }}
+      project_number: ${{ needs.maybe_create_project.outputs.project_number }}
+      timestamp: ${{ needs.generate_deployment_values.outputs.timestamp }}
+    permissions:
+      contents: read
       id-token: write
 
   test:
@@ -38,4 +52,5 @@ jobs:
       project: ${{ needs.generate_deployment_values.outputs.project }}
       project_number: ${{ needs.maybe_create_project.outputs.project_number }}
     permissions:
+      contents: read
       id-token: write
